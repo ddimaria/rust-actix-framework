@@ -1,5 +1,6 @@
 use actix_web::{error::ResponseError, http::StatusCode, HttpResponse};
 use derive_more::Display;
+use diesel::result::{DatabaseErrorKind, Error as DBError};
 
 #[derive(Debug, Display, PartialEq)]
 #[allow(dead_code)]
@@ -51,5 +52,24 @@ impl From<&String> for ErrorResponse {
 impl From<Vec<String>> for ErrorResponse {
     fn from(errors: Vec<String>) -> Self {
         ErrorResponse { errors }
+    }
+}
+
+
+
+impl From<DBError> for ApiError {
+    fn from(error: DBError) -> ApiError {
+        // Right now we just care about UniqueViolation from diesel
+        // But this would be helpful to easily map errors as our app grows
+        match error {
+            DBError::DatabaseError(kind, info) => {
+                if let DatabaseErrorKind::UniqueViolation = kind {
+                    let message = info.details().unwrap_or_else(|| info.message()).to_string();
+                    return ApiError::BadRequest(message);
+                }
+                ApiError::InternalServerError
+            }
+            _ => ApiError::InternalServerError,
+        }
     }
 }

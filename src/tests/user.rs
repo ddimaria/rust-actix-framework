@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::handlers::user::CreateUserRequest;
-    use crate::models::user::get_data;
+    use crate::handlers::user::{tests::get_first_users_id, CreateUserRequest};
     use crate::tests::helpers::tests::{assert_get, assert_post};
     use actix_web::web::Path;
     use uuid::Uuid;
@@ -10,7 +9,7 @@ mod tests {
 
     #[test]
     fn test_get_user() {
-        let user_id: Path<(Uuid)> = get_data()[0].id.into();
+        let user_id: Path<(Uuid)> = get_first_users_id().into();
         let url = format!("{}/{}", PATH, user_id);
         assert_get(&url);
     }
