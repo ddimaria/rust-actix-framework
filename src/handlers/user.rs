@@ -1,4 +1,4 @@
-use crate::database::Pool;
+use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::helpers::respond_json;
 use crate::models::user::{find_by_id, get_all, User};
@@ -39,12 +39,15 @@ pub struct CreateUserRequest {
 }
 
 /// Get a user
-pub fn get_user(user_id: Path<(Uuid)>, pool: Data<Pool>) -> Result<Json<UserResponse>, ApiError> {
+pub fn get_user(
+    user_id: Path<(Uuid)>,
+    pool: Data<PoolType>,
+) -> Result<Json<UserResponse>, ApiError> {
     respond_json(find_by_id(*user_id, &pool)?)
 }
 
 /// Get all users
-pub fn get_users(pool: Data<Pool>) -> Result<Json<UsersResponse>, ApiError> {
+pub fn get_users(pool: Data<PoolType>) -> Result<Json<UsersResponse>, ApiError> {
     respond_json(get_all(&pool)?)
 }
 
@@ -87,12 +90,11 @@ impl From<Json<CreateUserRequest>> for UserResponse {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crate::database::init_pool;
-    use crate::tests::helpers::tests::get_data_pool;
+    use crate::tests::helpers::tests::{get_data_pool, get_pool};
     use actix_web::test;
 
     pub fn get_all_users() -> UsersResponse {
-        let pool = init_pool().unwrap();
+        let pool = get_pool();
         get_all(&pool).unwrap()
     }
 

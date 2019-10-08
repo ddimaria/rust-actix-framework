@@ -1,4 +1,4 @@
-use crate::database::Pool;
+use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::handlers::user::{UserResponse, UsersResponse};
 use crate::schema::users;
@@ -20,24 +20,24 @@ pub struct User {
 }
 
 // Get all users
-pub fn get_all(pool: &Pool) -> Result<UsersResponse, ApiError> {
+pub fn get_all(pool: &PoolType) -> Result<UsersResponse, ApiError> {
     use crate::schema::users::dsl::users;
 
-    let conn = &pool.get().unwrap();
-    let all_users = users.load::<User>(conn)?;
+    let conn = pool.get().unwrap();
+    let all_users = users.load(&conn)?;
 
     Ok(all_users.into())
 }
 
 // Find a user by the user's id or error out
-pub fn find_by_id(user_id: Uuid, pool: &Pool) -> Result<UserResponse, ApiError> {
+pub fn find_by_id(user_id: Uuid, pool: &PoolType) -> Result<UserResponse, ApiError> {
     use crate::schema::users::dsl::{id, users};
 
     let not_found = format!("User {} not found", user_id);
-    let conn = &pool.get().unwrap();
+    let conn = pool.get().unwrap();
     let user = users
         .filter(id.eq(user_id.to_string()))
-        .first::<User>(conn)
+        .first::<User>(&conn)
         .map_err(|_| ApiError::NotFound(not_found))?;
 
     Ok(user.into())
