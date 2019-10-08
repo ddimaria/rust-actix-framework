@@ -1,6 +1,9 @@
 use actix_web::{error::ResponseError, http::StatusCode, HttpResponse};
 use derive_more::Display;
-use diesel::result::{DatabaseErrorKind, Error as DBError};
+use diesel::{
+    r2d2::PoolError,
+    result::{DatabaseErrorKind, Error as DBError},
+};
 
 #[derive(Debug, Display, PartialEq)]
 #[allow(dead_code)]
@@ -8,7 +11,7 @@ pub enum ApiError {
     BadRequest(String),
     InternalServerError,
     NotFound(String),
-
+    PoolError(String),
     #[display(fmt = "")]
     ValidationError(Vec<String>),
     Unauthorized,
@@ -35,6 +38,7 @@ impl ResponseError for ApiError {
                 HttpResponse::UnprocessableEntity().json::<ErrorResponse>(errors.to_vec().into())
             }
             ApiError::Unauthorized => HttpResponse::Unauthorized().json("Unauthorized"),
+            _ => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR),
         }
     }
 }
@@ -55,8 +59,6 @@ impl From<Vec<String>> for ErrorResponse {
     }
 }
 
-
-
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
         // Right now we just care about UniqueViolation from diesel
@@ -71,5 +73,11 @@ impl From<DBError> for ApiError {
             }
             _ => ApiError::InternalServerError,
         }
+    }
+}
+
+impl From<PoolError> for ApiError {
+    fn from(error: PoolError) -> ApiError {
+        ApiError::PoolError(error.to_string())
     }
 }

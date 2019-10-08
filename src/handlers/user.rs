@@ -1,9 +1,10 @@
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::helpers::respond_json;
-use crate::models::user::{find_by_id, get_all, User};
+use crate::models::user::{create, find_by_id, get_all, User};
 use crate::validate::validate;
 use actix_web::web::{Data, Json, Path};
+use chrono::Utc;
 use rayon::prelude::*;
 use serde::Serialize;
 use uuid::Uuid;
@@ -52,9 +53,26 @@ pub fn get_users(pool: Data<PoolType>) -> Result<Json<UsersResponse>, ApiError> 
 }
 
 /// Create a user
-pub fn create_user(params: Json<CreateUserRequest>) -> Result<Json<UserResponse>, ApiError> {
+pub fn create_user(
+    pool: Data<PoolType>,
+    params: Json<CreateUserRequest>,
+) -> Result<Json<UserResponse>, ApiError> {
     validate(&params)?;
-    respond_json::<UserResponse>(params.into())
+
+    let new_user = User {
+        id: Uuid::new_v4().to_string(),
+        first_name: params.first_name.to_string(),
+        last_name: params.last_name.to_string(),
+        email: params.email.to_string(),
+        password: "".into(),
+        created_by: "".into(),
+        created_at: Utc::now().naive_utc(),
+        updated_by: "".into(),
+        updated_at: Utc::now().naive_utc(),
+    };
+    create(&new_user, &pool)?;
+
+    respond_json(new_user.into())
 }
 
 impl From<User> for UserResponse {
@@ -71,19 +89,6 @@ impl From<User> for UserResponse {
 impl From<Vec<User>> for UsersResponse {
     fn from(users: Vec<User>) -> Self {
         UsersResponse(users.into_par_iter().map(|user| user.into()).collect())
-    }
-}
-
-// Quick way to convert a CreateUserRequest to a new UserResponse
-// For demonstration purposes only
-impl From<Json<CreateUserRequest>> for UserResponse {
-    fn from(request: Json<CreateUserRequest>) -> Self {
-        UserResponse {
-            id: Uuid::new_v4(),
-            first_name: request.first_name.to_string(),
-            last_name: request.last_name.to_string(),
-            email: request.email.to_string(),
-        }
     }
 }
 
@@ -122,8 +127,9 @@ pub mod tests {
 
     #[test]
     fn test_get_users() {
-        let response = test::block_on(get_users(get_data_pool())).unwrap();
-        assert_eq!(response.into_inner(), get_all_users());
+        let response = get_users(get_data_pool());
+        assert!(response.is_ok());
+        assert_eq!(response.unwrap().into_inner().0[0], get_all_users().0[0]);
     }
 
     #[test]
@@ -133,7 +139,7 @@ pub mod tests {
             last_name: "Nakamoto".into(),
             email: "satoshi@nakamotoinstitute.org".into(),
         });
-        let response = test::block_on(create_user(Json(params.clone()))).unwrap();
+        let response = test::block_on(create_user(get_data_pool(), Json(params.clone()))).unwrap();
         assert_eq!(response.into_inner().first_name, params.first_name);
     }
 }
