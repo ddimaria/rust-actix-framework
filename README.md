@@ -19,6 +19,7 @@ other languages while attempting to maintain the performance benefits of Actix.
 - Built-in Healthcheck (includes cargo version info)
 - Listeners configured for TDD
 - Custom Errors and HTTP Payload/Json Validation
+- Secure Argon2i Password Hashing
 - Unit and Integration Tests
 - Test Coverage Reports
 - Dockerfile for Running the Server in a Container
@@ -26,11 +27,14 @@ other languages while attempting to maintain the performance benefits of Actix.
 
 ## Packages
 
+- `Argon2i`: Argon2i Password Hasning
 - `actix-web`: Actix Web Server
 - `derive_more`: Error Formatting
+- `diesel`: ORM that Operates on Several Databases
 - `dotenv`: Configuration Loader (.env)
 - `envy`: Deserializes Environment Variables into a Config Struct
 - `listenfd`: Listens for Filesystem Changes
+- `r2d2`: Database Connection Pooling
 - `validator`: Validates incoming Json
 - `kcov`: Coverage Analysis
 

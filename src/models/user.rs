@@ -1,6 +1,7 @@
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::handlers::user::{UserResponse, UsersResponse};
+use crate::models::auth::hash;
 use crate::schema::users;
 use chrono::{NaiveDateTime, Utc};
 use diesel::insert_into;
@@ -73,7 +74,7 @@ impl From<NewUser> for User {
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
-            password: user.password,
+            password: hash(&user.password),
             created_by: user.created_by,
             created_at: Utc::now().naive_utc(),
             updated_by: user.updated_by,
@@ -118,10 +119,10 @@ pub mod tests {
         let user_id = Uuid::new_v4();
         let new_user = NewUser {
             id: user_id.to_string(),
-            first_name: "".to_string(),
-            last_name: "".to_string(),
-            email: "".to_string(),
-            password: "".to_string(),
+            first_name: "Model".to_string(),
+            last_name: "Test".to_string(),
+            email: "model-test@nothing.org".to_string(),
+            password: "123456".to_string(),
             created_by: user_id.to_string(),
             updated_by: user_id.to_string(),
         };

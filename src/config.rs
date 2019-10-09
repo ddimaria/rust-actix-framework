@@ -14,6 +14,7 @@ use serde::Deserialize;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Config {
+    pub auth_salt: String,
     pub database_connection: DatabaseConnection,
     pub database_url: String,
     pub server: String,
