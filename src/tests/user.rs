@@ -8,23 +8,24 @@ mod tests {
     const PATH: &str = "/api/v1/user";
 
     #[test]
-    fn test_get_user() {
+    fn it_gets_a_user() {
         let user_id: Path<(Uuid)> = get_first_users_id().into();
         let url = format!("{}/{}", PATH, user_id);
         assert_get(&url);
     }
 
     #[test]
-    fn test_get_users() {
+    fn it_gets_all_users() {
         assert_get(PATH);
     }
 
     #[test]
-    fn test_create_user() {
+    fn it_creates_a_user() {
         let params = CreateUserRequest {
             first_name: "Satoshi".into(),
             last_name: "Nakamoto".into(),
             email: "satoshi@nakamotoinstitute.org".into(),
+            password: "123456".into(),
         };
         assert_post(PATH, params);
     }
