@@ -1,5 +1,6 @@
 //! Spin up a HTTPServer
 
+use actix_identity::{CookieIdentityPolicy, IdentityService};
 use actix_web::{middleware::Logger, App, HttpServer};
 use listenfd::ListenFd;
 
@@ -17,6 +18,12 @@ pub fn server() -> std::io::Result<()> {
     let mut server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .wrap(IdentityService::new(
+                CookieIdentityPolicy::new(&[0; 32])
+                    .name("auth")
+                    .max_age_time(chrono::Duration::minutes(20))
+                    .secure(false),
+            ))
             .configure(add_pool)
             .configure(routes)
     });

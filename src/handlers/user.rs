@@ -39,7 +39,7 @@ pub struct CreateUserRequest {
 
     #[validate(length(
         min = 6,
-        message = "last_name is required and must be at least 3 characters"
+        message = "password is required and must be at least 6 characters"
     ))]
     pub password: String,
 }

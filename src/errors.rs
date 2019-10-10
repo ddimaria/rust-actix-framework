@@ -37,7 +37,7 @@ impl ResponseError for ApiError {
             ApiError::ValidationError(errors) => {
                 HttpResponse::UnprocessableEntity().json::<ErrorResponse>(errors.to_vec().into())
             }
-            ApiError::Unauthorized => HttpResponse::Unauthorized().json("Unauthorized"),
+            ApiError::Unauthorized => HttpResponse::Unauthorized().json::<ErrorResponse>((&"Unauthorized".to_string()).into()),
             _ => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR),
         }
     }

@@ -2,6 +2,7 @@
 //! combined.
 
 use crate::handlers::{
+    auth::login,
     health::get_health,
     user::{create_user, get_user, get_users},
 };
@@ -9,12 +10,14 @@ use actix_web::web;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/health", web::get().to_async(get_health))
-        .service(
-            web::scope("/api/v1").service(
-                web::scope("/user")
-                    .route("/{id}", web::get().to_async(get_user))
-                    .route("", web::get().to_async(get_users))
-                    .route("", web::post().to_async(create_user)),
+        .service(web::scope("/api/v1")
+            .service(web::scope("/auth")
+                .route("/login", web::post().to_async(login))
+            )
+            .service(web::scope("/user")
+                .route("/{id}", web::get().to_async(get_user))
+                .route("", web::get().to_async(get_users))
+                .route("", web::post().to_async(create_user)),
             ),
         );
 }

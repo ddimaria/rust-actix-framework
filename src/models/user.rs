@@ -56,6 +56,24 @@ pub fn find(pool: &PoolType, user_id: Uuid) -> Result<UserResponse, ApiError> {
     Ok(user.into())
 }
 
+// Find a user by the user's id or error out
+pub fn find_by_auth(
+    pool: &PoolType,
+    user_email: &str,
+    user_password: &str,
+) -> Result<UserResponse, ApiError> {
+    use crate::schema::users::dsl::{email, password, users};
+
+    let conn = pool.get()?;
+    let user = users
+        .filter(email.eq(user_email.to_string()))
+        .filter(password.eq(user_password.to_string()))
+        .first::<User>(&conn)
+        .map_err(|_| ApiError::Unauthorized)?;
+
+    Ok(user.into())
+}
+
 // Create a new user
 pub fn create(pool: &PoolType, new_user: &User) -> Result<UserResponse, ApiError> {
     use crate::schema::users::dsl::users;
