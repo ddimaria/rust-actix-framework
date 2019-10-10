@@ -1,7 +1,7 @@
+use crate::auth::hash;
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::handlers::user::{UserResponse, UsersResponse};
-use crate::models::auth::hash;
 use crate::schema::users;
 use chrono::{NaiveDateTime, Utc};
 use diesel::insert_into;
@@ -32,7 +32,7 @@ pub struct NewUser {
     pub updated_by: String,
 }
 
-// Get all users
+/// Get all users
 pub fn get_all(pool: &PoolType) -> Result<UsersResponse, ApiError> {
     use crate::schema::users::dsl::users;
 
@@ -42,7 +42,7 @@ pub fn get_all(pool: &PoolType) -> Result<UsersResponse, ApiError> {
     Ok(all_users.into())
 }
 
-// Find a user by the user's id or error out
+/// Find a user by the user's id or error out
 pub fn find(pool: &PoolType, user_id: Uuid) -> Result<UserResponse, ApiError> {
     use crate::schema::users::dsl::{id, users};
 
@@ -56,7 +56,8 @@ pub fn find(pool: &PoolType, user_id: Uuid) -> Result<UserResponse, ApiError> {
     Ok(user.into())
 }
 
-// Find a user by the user's id or error out
+/// Find a user by the user's authentication information (email + password)
+/// Return an Unauthorized error if it doesn't match
 pub fn find_by_auth(
     pool: &PoolType,
     user_email: &str,
@@ -69,12 +70,12 @@ pub fn find_by_auth(
         .filter(email.eq(user_email.to_string()))
         .filter(password.eq(user_password.to_string()))
         .first::<User>(&conn)
-        .map_err(|_| ApiError::Unauthorized)?;
+        .map_err(|_| ApiError::Unauthorized("Invalid login".into()))?;
 
     Ok(user.into())
 }
 
-// Create a new user
+/// Create a new user
 pub fn create(pool: &PoolType, new_user: &User) -> Result<UserResponse, ApiError> {
     use crate::schema::users::dsl::users;
 

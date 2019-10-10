@@ -1,29 +1,21 @@
 //! Spin up a HTTPServer
 
-use actix_identity::{CookieIdentityPolicy, IdentityService};
-use actix_web::{middleware::Logger, App, HttpServer};
-use listenfd::ListenFd;
-
+use crate::auth::get_identity_service;
 use crate::config::CONFIG;
 use crate::database::add_pool;
 use crate::routes::routes;
+use actix_web::{middleware::Logger, App, HttpServer};
+use listenfd::ListenFd;
 
 pub fn server() -> std::io::Result<()> {
     dotenv::dotenv().ok();
-    std::env::set_var("RUST_LOG", "actix_web=info,actix_server=info");
-    std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
     let mut listenfd = ListenFd::from_env();
     let mut server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .wrap(IdentityService::new(
-                CookieIdentityPolicy::new(&[0; 32])
-                    .name("auth")
-                    .max_age_time(chrono::Duration::minutes(20))
-                    .secure(false),
-            ))
+            .wrap(get_identity_service())
             .configure(add_pool)
             .configure(routes)
     });

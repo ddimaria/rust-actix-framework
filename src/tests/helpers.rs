@@ -1,17 +1,19 @@
 #[cfg(test)]
 pub mod tests {
+    use crate::auth::get_identity_service;
     use crate::config::CONFIG;
     use crate::database::{add_pool, init_pool, Pool};
     use crate::routes::routes;
     use actix_web::dev::{Service, ServiceResponse};
     use actix_web::{test, web::Data, App};
-    use diesel::{mysql::MysqlConnection};
+    use diesel::mysql::MysqlConnection;
     use serde::Serialize;
 
     /// Helper for HTTP GET integration tests
     pub fn test_get(route: &str) -> ServiceResponse {
         let mut app = test::init_service(
             App::new()
+                .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
         );
@@ -21,8 +23,9 @@ pub mod tests {
 
     /// Helper for HTTP POST integration tests
     pub fn test_post<T: Serialize>(route: &str, params: T) -> ServiceResponse {
-       let mut app = test::init_service(
+        let mut app = test::init_service(
             App::new()
+                .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
         );
@@ -47,10 +50,12 @@ pub mod tests {
         response
     }
 
+    /// Returns a r2d2 Pooled Connection to be used in tests
     pub fn get_pool() -> Pool<MysqlConnection> {
         init_pool::<MysqlConnection>(CONFIG.clone()).unwrap()
     }
 
+    /// Returns a r2d2 Pooled Connection wrappedn in Actix Application Data
     pub fn get_data_pool() -> Data<Pool<MysqlConnection>> {
         Data::new(get_pool())
     }

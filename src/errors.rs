@@ -9,12 +9,14 @@ use diesel::{
 #[allow(dead_code)]
 pub enum ApiError {
     BadRequest(String),
-    InternalServerError,
+    CannotDecodeJwtToken(String),
+    CannotEncodeJwtToken(String),
+    InternalServerError(String),
     NotFound(String),
     PoolError(String),
     #[display(fmt = "")]
     ValidationError(Vec<String>),
-    Unauthorized,
+    Unauthorized(String),
 }
 
 /// User-friendly error messages
@@ -23,21 +25,22 @@ pub struct ErrorResponse {
     errors: Vec<String>,
 }
 
-/// Allow Actix to automatically convert ApiErrors to external Response Errors
+/// Automatically convert ApiErrors to external Response Errors
 impl ResponseError for ApiError {
     fn render_response(&self) -> HttpResponse {
         match self {
             ApiError::BadRequest(error) => {
                 HttpResponse::BadRequest().json::<ErrorResponse>(error.into())
             }
-            ApiError::InternalServerError => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR),
             ApiError::NotFound(message) => {
                 HttpResponse::NotFound().json::<ErrorResponse>(message.into())
             }
             ApiError::ValidationError(errors) => {
                 HttpResponse::UnprocessableEntity().json::<ErrorResponse>(errors.to_vec().into())
             }
-            ApiError::Unauthorized => HttpResponse::Unauthorized().json::<ErrorResponse>((&"Unauthorized".to_string()).into()),
+            ApiError::Unauthorized(error) => {
+                HttpResponse::Unauthorized().json::<ErrorResponse>(error.into())
+            }
             _ => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR),
         }
     }
@@ -59,6 +62,7 @@ impl From<Vec<String>> for ErrorResponse {
     }
 }
 
+/// Convert DBErrors to ApiErrors
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
         // Right now we just care about UniqueViolation from diesel
@@ -69,13 +73,14 @@ impl From<DBError> for ApiError {
                     let message = info.details().unwrap_or_else(|| info.message()).to_string();
                     return ApiError::BadRequest(message);
                 }
-                ApiError::InternalServerError
+                ApiError::InternalServerError("Unknown database error".into())
             }
-            _ => ApiError::InternalServerError,
+            _ => ApiError::InternalServerError("Unknown database error".into()),
         }
     }
 }
 
+/// Convert PoolErrors to ApiErrors
 impl From<PoolError> for ApiError {
     fn from(error: PoolError) -> ApiError {
         ApiError::PoolError(error.to_string())

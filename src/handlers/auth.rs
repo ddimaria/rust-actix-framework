@@ -1,11 +1,12 @@
+use crate::auth::{create_jwt, hash, PrivateClaim};
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::handlers::user::UserResponse;
-use crate::helpers::respond_json;
-use crate::models::{auth::hash, user::find_by_auth};
+use crate::helpers::{respond_json, respond_ok};
+use crate::models::user::find_by_auth;
 use crate::validate::validate;
 use actix_identity::Identity;
-use actix_web::web::{Data, Json};
+use actix_web::web::{Data, HttpResponse, Json};
 use serde::Serialize;
 use validator::Validate;
 
@@ -21,10 +22,8 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct LoginResponse {}
-
 /// Login a user
+/// Create and remember their JWT
 pub fn login(
     id: Identity,
     pool: Data<PoolType>,
@@ -32,18 +31,31 @@ pub fn login(
 ) -> Result<Json<UserResponse>, ApiError> {
     validate(&params)?;
 
+    // Validate that the email + hashed password matches
     let hashed = hash(&params.password);
     let user = find_by_auth(&pool, &params.email, &hashed)?;
 
-    id.remember(user.id.to_string());
+    // Create a JWT
+    let private_claim = PrivateClaim::new(user.id);
+    let jwt = create_jwt(private_claim)?;
+
+    // Remember the token
+    id.remember(jwt);
     respond_json(user.into())
+}
+
+/// Logout a user
+/// Forget their user_id
+pub fn logout(id: Identity) -> Result<HttpResponse, ApiError> {
+    id.forget();
+    respond_ok()
 }
 
 #[cfg(test)]
 pub mod tests {
-    use super::*;
-    use crate::tests::helpers::tests::get_data_pool;
-    use actix_web::test;
+    // use super::*;
+    // use crate::tests::helpers::tests::get_data_pool;
+    // use actix_web::test;
 
     // #[test]
     // fn it_logs_in() {

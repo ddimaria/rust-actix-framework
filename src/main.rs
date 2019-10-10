@@ -9,6 +9,7 @@ extern crate validator_derive;
 
 use crate::server::server;
 
+mod auth;
 mod config;
 mod database;
 mod errors;
