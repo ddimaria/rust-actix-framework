@@ -13,8 +13,10 @@ other languages while attempting to maintain the performance benefits of Actix.
 ## Features
 
 - Actix 1.x HTTP Server
-- Filesystem organized for scale
-- .env for local development
+- Multi-Database Support (CockroachDB, Postgres, MySQL, Sqlite)
+- JWT Support
+- Filesystem Organized for Scale
+- .env for Local Development
 - Lazy Static Config struct
 - Built-in Healthcheck (includes cargo version info)
 - Listeners configured for TDD
@@ -33,10 +35,12 @@ other languages while attempting to maintain the performance benefits of Actix.
 - `diesel`: ORM that Operates on Several Databases
 - `dotenv`: Configuration Loader (.env)
 - `envy`: Deserializes Environment Variables into a Config Struct
+- `jsonwebtoken`: JWT encoding/decoding
+- `kcov`: Coverage Analysis
 - `listenfd`: Listens for Filesystem Changes
+- `rayon`: Parallelize
 - `r2d2`: Database Connection Pooling
 - `validator`: Validates incoming Json
-- `kcov`: Coverage Analysis
 
 ## Installation
 
@@ -52,6 +56,21 @@ Copy over the example .env file:
 ```shell
 cp .env.example .env
 ```
+
+**IMPORTANT:** Change .env values for your setup, paying special attention to the salt and various keys.
+
+After you set the `DATABASE` value in .env, you'll need it to match the `default` value in the `features` section in `Cargo.toml` with the `DATABASE` value in .env:
+
+```toml
+[features]
+cockroach = []
+mysql = []
+postgres = []
+sqlite = []
+default = ["mysql"]
+```
+
+_note:_ Only supply a SINGLE database in the `default` array.
 
 ## Running the Server
 
@@ -164,6 +183,56 @@ Example:
 
 ```shell
 curl -X GET http://127.0.0.1:3000/health
+```
+
+### Login
+
+`POST /api/v1/auth/login`
+
+#### Request
+
+| Param    | Type   | Description               | Required | Validations           |
+| -------- | ------ | ------------------------- | :------: | --------------------- |
+| email    | String | The user's email address  |   yes    | valid email address   |
+| password | String | The user's email password |   yes    | at least 6 characters |
+
+```json
+{
+  "email": "torvalds@transmeta.com",
+  "password": "123456"
+}
+```
+
+#### Response
+
+##### Header
+
+```json
+Header
+
+set-cookie →auth=qXPRP1Kbo1i+TOQT9znoSfOQDhNSEeYIm1uMI73Es3CYRUmzor/HieaPcQskPAr2YJNiMhmIIzQXvz3JWDfoEw==; HttpOnly; Path=/; Max-Age=1200
+
+Json Body
+{
+  "id": "0c419802-d1ef-47d6-b8fa-c886a23d61a7",
+  "first_name": "Linus",
+  "last_name": "Torvalds",
+  "email": "torvalds@transmeta.com"
+}
+```
+
+### Logout
+
+`GET /api/v1/auth/logout`
+
+#### Response
+
+`200 OK`
+
+Example:
+
+```shell
+curl -X GET http://127.0.0.1:3000/api/v1/auth/logout
 ```
 
 ### Get All Users
