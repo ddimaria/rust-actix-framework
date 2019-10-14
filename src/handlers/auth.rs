@@ -36,7 +36,7 @@ pub fn login(
     let user = find_by_auth(&pool, &params.email, &hashed)?;
 
     // Create a JWT
-    let private_claim = PrivateClaim::new(user.id);
+    let private_claim = PrivateClaim::new(user.id, user.email.clone());
     let jwt = create_jwt(private_claim)?;
 
     // Remember the token
@@ -55,6 +55,7 @@ pub fn logout(id: Identity) -> Result<HttpResponse, ApiError> {
 pub mod tests {
     // use super::*;
     // use crate::tests::helpers::tests::get_data_pool;
+    // use actix_identity::RequestIdentity;
     // use actix_web::test;
 
     // #[test]
@@ -62,11 +63,10 @@ pub mod tests {
     //     let email = "abc@123.com".to_string();
     //     let password = "123".to_string();
     //     let params = LoginRequest { email, password };
-    //     let request =
-    //         TestRequest::with_header("content-type", "application/json").to_http_request();
-    //     // let identity = RequestIdentity::get_identity("test");
+    //     let request = test::TestRequest::with_header("content-type", "application/json").to_http_request();
+    //     let identity = RequestIdentity::get_identity(&request);
     //     let response =
-    //         test::block_on(login(request.into(), get_data_pool(), Json(params))).unwrap();
+    //         test::block_on(login(NEED_IDENTITY_HERE, get_data_pool(), Json(params))).unwrap();
     //     // assert_eq!(response.into_inner(), *first_user);
     // }
 }

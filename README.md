@@ -191,10 +191,10 @@ curl -X GET http://127.0.0.1:3000/health
 
 #### Request
 
-| Param    | Type   | Description               | Required | Validations           |
-| -------- | ------ | ------------------------- | :------: | --------------------- |
-| email    | String | The user's email address  |   yes    | valid email address   |
-| password | String | The user's email password |   yes    | at least 6 characters |
+| Param    | Type   | Description              | Required | Validations           |
+| -------- | ------ | ------------------------ | :------: | --------------------- |
+| email    | String | The user's email address |   yes    | valid email address   |
+| password | String | The user's password      |   yes    | at least 6 characters |
 
 ```json
 {
@@ -205,14 +205,15 @@ curl -X GET http://127.0.0.1:3000/health
 
 #### Response
 
-##### Header
-
-```json
 Header
 
+```json
 set-cookie →auth=qXPRP1Kbo1i+TOQT9znoSfOQDhNSEeYIm1uMI73Es3CYRUmzor/HieaPcQskPAr2YJNiMhmIIzQXvz3JWDfoEw==; HttpOnly; Path=/; Max-Age=1200
+```
 
 Json Body
+
+```json
 {
   "id": "0c419802-d1ef-47d6-b8fa-c886a23d61a7",
   "first_name": "Linus",

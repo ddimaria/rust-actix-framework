@@ -32,6 +32,12 @@ pub struct NewUser {
     pub updated_by: String,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AuthUser {
+    pub id: String,
+    pub email: String,
+}
+
 /// Get all users
 pub fn get_all(pool: &PoolType) -> Result<UsersResponse, ApiError> {
     use crate::schema::users::dsl::users;

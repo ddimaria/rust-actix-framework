@@ -9,13 +9,15 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PrivateClaim {
     pub user_id: Uuid,
+    pub email: String,
     exp: i64,
 }
 
 impl PrivateClaim {
-    pub fn new(user_id: Uuid) -> Self {
+    pub fn new(user_id: Uuid, email: String) -> Self {
         Self {
             user_id,
+            email,
             exp: (Utc::now() + Duration::hours(CONFIG.jwt_expiration)).timestamp(),
         }
     }
@@ -62,6 +64,7 @@ pub fn get_identity_service() -> IdentityService<CookieIdentityPolicy> {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    static EMAIL: &str = "test@test.com";
 
     #[test]
     fn it_hashes_a_password() {
@@ -80,14 +83,14 @@ pub mod tests {
 
     #[test]
     fn it_creates_a_jwt() {
-        let private_claim = PrivateClaim::new(Uuid::new_v4());
+        let private_claim = PrivateClaim::new(Uuid::new_v4(), EMAIL.into());
         let jwt = create_jwt(private_claim);
         assert!(jwt.is_ok());
     }
 
     #[test]
     fn it_decodes_a_jwt() {
-        let private_claim = PrivateClaim::new(Uuid::new_v4());
+        let private_claim = PrivateClaim::new(Uuid::new_v4(), EMAIL.into());
         let jwt = create_jwt(private_claim.clone()).unwrap();
         let decoded = decode_jwt(&jwt).unwrap();
         assert_eq!(private_claim, decoded);

@@ -6,6 +6,7 @@ use crate::handlers::{
     health::get_health,
     user::{create_user, get_user, get_users},
 };
+use crate::middleware::auth::Auth as AuthMiddleware;
 use actix_web::web;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
@@ -18,6 +19,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                         .route("/login", web::post().to_async(login))
                         .route("/logout", web::get().to_async(logout)),
                 )
+                .wrap(AuthMiddleware)
                 // USER routes
                 .service(
                     web::scope("/user")
