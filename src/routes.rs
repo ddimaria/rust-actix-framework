@@ -13,13 +13,14 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/health", web::get().to_async(get_health))
         .service(
             web::scope("/api/v1")
+                // AUTH Middleware for JWT tokens
+                .wrap(AuthMiddleware)
                 // AUTH routes
                 .service(
                     web::scope("/auth")
                         .route("/login", web::post().to_async(login))
                         .route("/logout", web::get().to_async(logout)),
                 )
-                .wrap(AuthMiddleware)
                 // USER routes
                 .service(
                     web::scope("/user")

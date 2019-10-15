@@ -208,7 +208,11 @@ curl -X GET http://127.0.0.1:3000/health
 Header
 
 ```json
-set-cookie →auth=qXPRP1Kbo1i+TOQT9znoSfOQDhNSEeYIm1uMI73Es3CYRUmzor/HieaPcQskPAr2YJNiMhmIIzQXvz3JWDfoEw==; HttpOnly; Path=/; Max-Age=1200
+HTTP/1.1 200 OK
+content-length: 118
+content-type: application/json
+set-cookie: auth=COOKIE_VALUE_HERE; HttpOnly; Path=/; Max-Age=1200
+date: Tue, 15 Oct 2019 02:04:54 GMT
 ```
 
 Json Body
@@ -221,6 +225,8 @@ Json Body
   "email": "torvalds@transmeta.com"
 }
 ```
+
+**When sending subsequent requests, create a header variable `cookie` with the value `auth=COOKIE_VALUE_HERE`**
 
 ### Logout
 
