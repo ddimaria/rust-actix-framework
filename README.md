@@ -72,6 +72,20 @@ default = ["mysql"]
 
 _note:_ Only supply a SINGLE database in the `default` array.
 
+Next, you'll need to install the Diesel CLI:
+
+```shell
+cargo install diesel_cli
+```
+
+If you run into errors, see http://diesel.rs/guides/getting-started/
+
+Now run the migrations via the Diesel CLI:
+
+```shell
+diesel migration run
+```
+
 ## Running the Server
 
 To startup the server:
@@ -373,16 +387,18 @@ curl -X POST \
 #### Request
 
 Path
-| Param | Type | Description |
+
+| Param | Type | Description   |
 | ----- | ---- | ------------- |
-| id | Uuid | The user's id |
+| id    | Uuid | The user's id |
 
 Body
-| Param | Type | Description | Required | Validations |
+
+| Param      | Type   | Description              | Required | Validations           |
 | ---------- | ------ | ------------------------ | :------: | --------------------- |
-| first_name | String | The user's first name | yes | at least 3 characters |
-| last_name | String | The user's last name | yes | at least 3 characters |
-| email | String | The user's email address | yes | valid email address |
+| first_name | String | The user's first name    |   yes    | at least 3 characters |
+| last_name  | String | The user's last name     |   yes    | at least 3 characters |
+| email      | String | The user's email address |   yes    | valid email address   |
 
 ```json
 {
