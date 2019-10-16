@@ -4,6 +4,7 @@ use diesel::{
     r2d2::PoolError,
     result::{DatabaseErrorKind, Error as DBError},
 };
+use uuid::parser::ParseError;
 
 #[derive(Debug, Display, PartialEq)]
 #[allow(dead_code)]
@@ -13,6 +14,7 @@ pub enum ApiError {
     CannotEncodeJwtToken(String),
     InternalServerError(String),
     NotFound(String),
+    ParseError(String),
     PoolError(String),
     #[display(fmt = "")]
     ValidationError(Vec<String>),
@@ -84,5 +86,12 @@ impl From<DBError> for ApiError {
 impl From<PoolError> for ApiError {
     fn from(error: PoolError) -> ApiError {
         ApiError::PoolError(error.to_string())
+    }
+}
+
+/// Convert ParseErrors to ApiErrors
+impl From<ParseError> for ApiError {
+    fn from(error: ParseError) -> ApiError {
+        ApiError::ParseError(error.to_string())
     }
 }

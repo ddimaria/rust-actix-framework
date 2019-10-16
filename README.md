@@ -144,7 +144,7 @@ In the root of the project:
 docker run -it --rm --security-opt seccomp=unconfined --volume "${PWD}":/volume --workdir /volume ddimaria/rust-kcov:1.37 --exclude-pattern=/.cargo,/usr/lib,/src/main.rs,src/server.rs
 ```
 
-_note: converage takes a long time to run (up to 30 mins)._
+_note: coverage takes a long time to run (up to 30 mins)._
 
 You can view the HTML output of the report at `target/cov/index.html`
 
@@ -363,6 +363,80 @@ curl -X POST \
     "last_name is required and must be at least 3 characters",
     "email must be a valid email"
   ]
+}
+```
+
+### Update a User
+
+`PUT /api/v1/{id}`
+
+#### Request
+
+Path
+| Param | Type | Description |
+| ----- | ---- | ------------- |
+| id | Uuid | The user's id |
+
+Body
+| Param | Type | Description | Required | Validations |
+| ---------- | ------ | ------------------------ | :------: | --------------------- |
+| first_name | String | The user's first name | yes | at least 3 characters |
+| last_name | String | The user's last name | yes | at least 3 characters |
+| email | String | The user's email address | yes | valid email address |
+
+```json
+{
+  "first_name": "Linus",
+  "last_name": "Torvalds",
+  "email": "torvalds@transmeta.com"
+}
+```
+
+#### Response
+
+```json
+{
+  "id": "0c419802-d1ef-47d6-b8fa-c886a23d61a7",
+  "first_name": "Linus",
+  "last_name": "Torvalds",
+  "email": "torvalds@transmeta.com"
+}
+```
+
+Example:
+
+```shell
+curl -X PUT \
+  http://127.0.0.1:3000/api/v1/user/0c419802-d1ef-47d6-b8fa-c886a23d61a7 \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "first_name": "Linus",
+    "last_name": "Torvalds",
+    "email": "torvalds@transmeta.com"
+}'
+```
+
+#### Response - Validation Errors
+
+`422 Unprocessable Entity`
+
+```json
+{
+  "errors": [
+    "first_name is required and must be at least 3 characters",
+    "last_name is required and must be at least 3 characters",
+    "email must be a valid email"
+  ]
+}
+```
+
+#### Response - Not Found
+
+`404 Not Found`
+
+```json
+{
+  "errors": ["User 0c419802-d1ef-47d6-b8fa-c886a23d61a7 not found"]
 }
 ```
 

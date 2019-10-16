@@ -4,7 +4,6 @@ use crate::errors::ApiError;
 use crate::handlers::user::{UserResponse, UsersResponse};
 use crate::schema::users;
 use chrono::{NaiveDateTime, Utc};
-use diesel::insert_into;
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -29,6 +28,16 @@ pub struct NewUser {
     pub email: String,
     pub password: String,
     pub created_by: String,
+    pub updated_by: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, AsChangeset)]
+#[table_name = "users"]
+pub struct UpdateUser {
+    pub id: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
     pub updated_by: String,
 }
 
@@ -77,7 +86,6 @@ pub fn find_by_auth(
         .filter(password.eq(user_password.to_string()))
         .first::<User>(&conn)
         .map_err(|_| ApiError::Unauthorized("Invalid login".into()))?;
-
     Ok(user.into())
 }
 
@@ -86,10 +94,20 @@ pub fn create(pool: &PoolType, new_user: &User) -> Result<UserResponse, ApiError
     use crate::schema::users::dsl::users;
 
     let conn = pool.get()?;
-
-    insert_into(users).values(new_user).execute(&conn)?;
-
+    diesel::insert_into(users).values(new_user).execute(&conn)?;
     Ok(new_user.clone().into())
+}
+
+/// Update a user
+pub fn update(pool: &PoolType, update_user: &UpdateUser) -> Result<UserResponse, ApiError> {
+    use crate::schema::users::dsl::{id, users};
+
+    let conn = pool.get()?;
+    diesel::update(users)
+        .filter(id.eq(update_user.id.clone()))
+        .set(update_user)
+        .execute(&conn)?;
+    find(&pool, Uuid::parse_str(&update_user.id)?)
 }
 
 impl From<NewUser> for User {
@@ -156,5 +174,36 @@ pub mod tests {
         assert!(created.is_ok());
         let found_user = find(&get_pool(), user_id).unwrap();
         assert_eq!(created.unwrap(), found_user);
+    }
+
+    #[test]
+    fn it_updates_a_user() {
+        let users = get_all_users().unwrap();
+        let user = &users.0[1];
+        let update_user = UpdateUser {
+            id: user.id.to_string(),
+            first_name: "ModelUpdate".to_string(),
+            last_name: "TestUpdate".to_string(),
+            email: "model-update-test@nothing.org".to_string(),
+            updated_by: user.id.to_string(),
+        };
+        let updated = update(&get_pool(), &update_user);
+        assert!(updated.is_ok());
+        let found_user = find(&get_pool(), user.id).unwrap();
+        assert_eq!(updated.unwrap(), found_user);
+    }
+
+    #[test]
+    fn it_fails_to_update_a_nonexistent_user() {
+        let user_id = Uuid::new_v4();
+        let update_user = UpdateUser {
+            id: user_id.to_string(),
+            first_name: "ModelUpdateFailure".to_string(),
+            last_name: "TestUpdateFailure".to_string(),
+            email: "model-update-failure-test@nothing.org".to_string(),
+            updated_by: user_id.to_string(),
+        };
+        let updated = update(&get_pool(), &update_user);
+        assert!(updated.is_err());
     }
 }

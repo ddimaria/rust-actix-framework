@@ -4,7 +4,7 @@
 use crate::handlers::{
     auth::{login, logout},
     health::get_health,
-    user::{create_user, get_user, get_users},
+    user::{create_user, get_user, get_users, update_user},
 };
 use crate::middleware::auth::Auth as AuthMiddleware;
 use actix_web::web;
@@ -25,6 +25,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                 .service(
                     web::scope("/user")
                         .route("/{id}", web::get().to_async(get_user))
+                        .route("/{id}", web::put().to_async(update_user))
                         .route("", web::get().to_async(get_users))
                         .route("", web::post().to_async(create_user)),
                 ),

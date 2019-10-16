@@ -1,7 +1,7 @@
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::helpers::respond_json;
-use crate::models::user::{create, find, get_all, NewUser, User};
+use crate::models::user::{create, find, get_all, update, NewUser, UpdateUser, User};
 use crate::validate::validate;
 use actix_web::web::{Data, Json, Path};
 use rayon::prelude::*;
@@ -44,6 +44,24 @@ pub struct CreateUserRequest {
     pub password: String,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize, Validate)]
+pub struct UpdateUserRequest {
+    #[validate(length(
+        min = 3,
+        message = "first_name is required and must be at least 3 characters"
+    ))]
+    pub first_name: String,
+
+    #[validate(length(
+        min = 3,
+        message = "last_name is required and must be at least 3 characters"
+    ))]
+    pub last_name: String,
+
+    #[validate(email(message = "email must be a valid email"))]
+    pub email: String,
+}
+
 /// Get a user
 pub fn get_user(
     user_id: Path<(Uuid)>,
@@ -79,6 +97,28 @@ pub fn create_user(
     let user: User = new_user.into();
 
     create(&pool, &user)?;
+    respond_json(user.into())
+}
+
+/// Update a user
+pub fn update_user(
+    user_id: Path<(Uuid)>,
+    pool: Data<PoolType>,
+    params: Json<UpdateUserRequest>,
+) -> Result<Json<UserResponse>, ApiError> {
+    validate(&params)?;
+
+    // temporarily use the user's id for updated_at
+    // update when auth is added
+    let update_user = UpdateUser {
+        id: user_id.to_string(),
+        first_name: params.first_name.to_string(),
+        last_name: params.last_name.to_string(),
+        email: params.email.to_string(),
+        updated_by: user_id.to_string(),
+    };
+
+    let user = update(&pool, &update_user)?;
     respond_json(user.into())
 }
 
@@ -148,6 +188,20 @@ pub mod tests {
             password: "123456".into(),
         });
         let response = test::block_on(create_user(get_data_pool(), Json(params.clone()))).unwrap();
+        assert_eq!(response.into_inner().first_name, params.first_name);
+    }
+
+    #[test]
+    fn it_updates_a_user() {
+        let first_user = &get_all_users().0[0];
+        let user_id: Path<(Uuid)> = get_first_users_id().into();
+        let params = Json(UpdateUserRequest {
+            first_name: first_user.first_name.clone(),
+            last_name: first_user.last_name.clone(),
+            email: first_user.email.clone(),
+        });
+        let response =
+            test::block_on(update_user(user_id, get_data_pool(), Json(params.clone()))).unwrap();
         assert_eq!(response.into_inner().first_name, params.first_name);
     }
 }
