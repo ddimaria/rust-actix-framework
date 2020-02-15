@@ -21,6 +21,7 @@ mod models;
 mod routes;
 mod schema;
 mod server;
+mod state;
 mod tests;
 mod validate;
 

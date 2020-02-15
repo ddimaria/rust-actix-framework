@@ -199,6 +199,25 @@ Example:
 curl -X GET http://127.0.0.1:3000/secure/test.html
 ```
 
+## Application State
+
+A shared, mutable hashmap is automatically added to the server. To invoke this data in a handler, simply add `data: AppState<'_, String>` to the function signature.
+
+Example:
+
+```rust
+pub async fn handle(data: AppState<'_, String>) -> impl Responder {
+  let first = data
+          .lock()
+          .expect("Could not acquire lock")
+          .get("first")
+          .unwrap()
+          .to_string();
+
+  println!("first: {}", first);
+}
+```
+
 ## Endpoints
 
 ### Healthcheck

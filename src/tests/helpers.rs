@@ -5,8 +5,7 @@ pub mod tests {
     use crate::database::{add_pool, init_pool, Pool};
     use crate::handlers::auth::LoginRequest;
     use crate::routes::routes;
-    // use actix_http::Request;
-    // use actix_http_test::block_on;
+    use crate::state::{new_state, AppState};
     use actix_web::dev::ServiceResponse;
     use actix_web::{test, web::Data, App};
     use diesel::mysql::MysqlConnection;
@@ -24,16 +23,17 @@ pub mod tests {
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
-        ).await;
+        )
+        .await;
 
         let response = test::call_service(
-                &mut app,
-                test::TestRequest::post()
+            &mut app,
+            test::TestRequest::post()
                 .set_json(&login_request)
                 .uri("/api/v1/auth/login")
                 .to_request(),
-            )
-            .await;
+        )
+        .await;
 
         let cookie = response.response().cookies().next().unwrap().to_owned();
         test::call_service(
@@ -42,7 +42,8 @@ pub mod tests {
                 .cookie(cookie.clone())
                 .uri(route)
                 .to_request(),
-        ).await
+        )
+        .await
     }
 
     /// Helper for HTTP POST integration tests
@@ -52,7 +53,8 @@ pub mod tests {
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
-        ).await;
+        )
+        .await;
         let login = login().await;
         let cookie = login.response().cookies().next().unwrap().to_owned();
         test::call_service(
@@ -62,7 +64,8 @@ pub mod tests {
                 .cookie(cookie.clone())
                 .uri(route)
                 .to_request(),
-        ).await
+        )
+        .await
     }
 
     /// Helper to login for tests
@@ -112,13 +115,24 @@ pub mod tests {
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
-        ).await;
+        )
+        .await;
         test::call_service(
             &mut app,
             test::TestRequest::post()
                 .set_json(&login_request)
                 .uri("/api/v1/auth/login")
                 .to_request(),
-        ).await
+        )
+        .await
+    }
+
+    // Mock applicate state
+    pub fn app_state() -> AppState<'static, String> {
+        let data = new_state::<String>();
+        data.lock()
+            .expect("Could not acquire lock")
+            .insert("first", "testing".into());
+        data
     }
 }
