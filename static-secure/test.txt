@@ -1,4 +1,1 @@
-AAAAAAA
-BBBBBBB
-CCCCCCC
-DDDDDDD
+Secure Static test text file
