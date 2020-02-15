@@ -7,13 +7,17 @@ use crate::handlers::{
     user::{create_user, delete_user, get_user, get_users, update_user},
 };
 use crate::middleware::auth::Auth as AuthMiddleware;
+use actix_files::Files;
 use actix_web::web;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("/health", web::get().to(get_health))
+    cfg
+        // Healthcheck
+        .route("/health", web::get().to(get_health))
+        // /api/v1 routes
         .service(
             web::scope("/api/v1")
-                // AUTH Middleware for JWT tokens
+                // Lock down routes with AUTH Middleware
                 .wrap(AuthMiddleware)
                 // AUTH routes
                 .service(
@@ -30,5 +34,21 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                         .route("", web::get().to(get_users))
                         .route("", web::post().to(create_user)),
                 ),
+        )
+        // Serve secure static files from the static-private folder
+        .service(
+            web::scope("/secure").wrap(AuthMiddleware).service(
+                Files::new("", "./static-secure")
+                    .index_file("index.html")
+                    .use_last_modified(true),
+            ),
+        )
+        // Serve public static files from the static folder
+        .service(
+            web::scope("").default_service(
+                Files::new("", "./static")
+                    .index_file("index.html")
+                    .use_last_modified(true),
+            ),
         );
 }

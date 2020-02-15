@@ -5,10 +5,11 @@ authors = ["David DiMaria <info@collectivesessions.com>"]
 edition = "2018"
 
 [dependencies]
+actix-files = "0.2.1"
 actix-identity = "0.2.1"
+actix-rt = "1"
 actix-service = "1.0.5"
 actix-web = "2"
-actix-rt = "1"
 argon2rs = "0.2.1"
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0.15"

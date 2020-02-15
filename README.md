@@ -176,6 +176,29 @@ Once the image is built, you can run the container in port 3000:
 docker run -it --rm --env-file=.env.docker -p 3000:3000 --name rust_actix_framework rust_actix_framework
 ```
 
+## Public Static Files
+
+Static files are served up from the `/static` folder.
+Directory listing is turned off.
+Index files are supported (`index.html`).
+
+Example:
+
+```shell
+curl -X GET http://127.0.0.1:3000/test.html
+```
+
+## Secure Static Files
+
+To serve static files to authenticated users only, place them in the `/static-secure` folder.
+These files are referenced using the root-level `/secure` path.
+
+Example:
+
+```shell
+curl -X GET http://127.0.0.1:3000/secure/test.html
+```
+
 ## Endpoints
 
 ### Healthcheck
