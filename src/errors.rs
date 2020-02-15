@@ -29,7 +29,7 @@ pub struct ErrorResponse {
 
 /// Automatically convert ApiErrors to external Response Errors
 impl ResponseError for ApiError {
-    fn render_response(&self) -> HttpResponse {
+    fn error_response(&self) -> HttpResponse {
         match self {
             ApiError::BadRequest(error) => {
                 HttpResponse::BadRequest().json::<ErrorResponse>(error.into())

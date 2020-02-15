@@ -6,8 +6,9 @@ use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
     Error, HttpResponse,
 };
-use futures::future::{ok, Either, FutureResult};
-use futures::Poll;
+use futures::{Future, future::{ok, Ready}};
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 pub struct Auth;
 
@@ -21,7 +22,7 @@ where
     type Error = Error;
     type InitError = ();
     type Transform = AuthMiddleware<S>;
-    type Future = FutureResult<Self::Transform, Self::InitError>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
         ok(AuthMiddleware { service })
@@ -39,27 +40,29 @@ where
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = Either<S::Future, FutureResult<Self::Response, Self::Error>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
-    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.service.poll_ready()
+    fn poll_ready(&mut self, cx: &mut Context) -> Poll<Result<(), Self::Error>> {        
+        self.service.poll_ready(cx)
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        let identity = req.get_identity().unwrap_or("".into());
+        let identity = RequestIdentity::get_identity(&req).unwrap_or("".into());
         let private_claim: Result<PrivateClaim, ApiError> = decode_jwt(&identity);
         let is_logged_in = private_claim.is_ok();
+        let unauthorized = !is_logged_in && req.path() != "/api/v1/auth/login";
 
-        if is_logged_in {
-            Either::A(self.service.call(req))
-        } else {
-            if req.path() == "/api/v1/auth/login" {
-                Either::A(self.service.call(req))
-            } else {
-                Either::B(ok(
-                    req.into_response(HttpResponse::Unauthorized().finish().into_body())
-                ))
-            }
+        if unauthorized {
+            return Box::pin(async move {    
+                Ok(req.into_response(HttpResponse::Unauthorized().finish().into_body()))
+            })
         }
+
+        let fut = self.service.call(req);
+
+        Box::pin(async move {
+            let res = fut.await?;
+            Ok(res)
+        })
     }
 }

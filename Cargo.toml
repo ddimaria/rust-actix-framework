@@ -1,13 +1,14 @@
 [package]
 name = "rust_actix_framework"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["David DiMaria <info@collectivesessions.com>"]
 edition = "2018"
 
 [dependencies]
-actix-identity = "0.1.0"
-actix-service = "0.4.1"
-actix-web = "1.0.3"
+actix-identity = "0.2.1"
+actix-service = "1.0.5"
+actix-web = "2"
+actix-rt = "1"
 argon2rs = "0.2.1"
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0.15"
@@ -15,8 +16,8 @@ diesel = { version = "1.4.0", features = ["chrono", "mysql", "postgres", "sqlite
 dotenv = "0.14"
 envy = "0.4"
 env_logger = "0.6"
-futures = "0.1"
-jsonwebtoken = "6"
+futures = "0.3.1"
+jsonwebtoken = "7"
 lazy_static = "1.4"
 listenfd = "0.3"
 rayon = "1.0"

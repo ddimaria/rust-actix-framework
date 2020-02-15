@@ -9,7 +9,7 @@ pub struct HealthResponse {
 }
 
 /// Handler to get the liveness of the service
-pub fn get_health() -> Result<Json<HealthResponse>, ApiError> {
+pub async fn get_health() -> Result<Json<HealthResponse>, ApiError> {
     respond_json(HealthResponse {
         status: "ok".into(),
         version: env!("CARGO_PKG_VERSION").into(),
@@ -19,10 +19,10 @@ pub fn get_health() -> Result<Json<HealthResponse>, ApiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::test;
-    #[test]
-    fn test_get_health() {
-        let response = test::block_on(get_health()).unwrap();
+
+    #[actix_rt::test]
+    async fn test_get_health() {
+        let response = get_health().await.unwrap();
         assert_eq!(response.into_inner().status, "ok".to_string());
     }
 }

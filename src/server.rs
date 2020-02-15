@@ -7,7 +7,7 @@ use crate::routes::routes;
 use actix_web::{middleware::Logger, App, HttpServer};
 use listenfd::ListenFd;
 
-pub fn server() -> std::io::Result<()> {
+pub async fn server() -> std::io::Result<()> {
     dotenv::dotenv().ok();
     env_logger::init();
 
@@ -26,5 +26,5 @@ pub fn server() -> std::io::Result<()> {
         server.bind(&CONFIG.server)?
     };
 
-    server.run()
+    server.run().await
 }

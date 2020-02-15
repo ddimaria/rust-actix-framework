@@ -63,7 +63,7 @@ pub struct UpdateUserRequest {
 }
 
 /// Get a user
-pub fn get_user(
+pub async fn get_user(
     user_id: Path<Uuid>,
     pool: Data<PoolType>,
 ) -> Result<Json<UserResponse>, ApiError> {
@@ -71,12 +71,12 @@ pub fn get_user(
 }
 
 /// Get all users
-pub fn get_users(pool: Data<PoolType>) -> Result<Json<UsersResponse>, ApiError> {
+pub async fn get_users(pool: Data<PoolType>) -> Result<Json<UsersResponse>, ApiError> {
     respond_json(get_all(&pool)?)
 }
 
 /// Create a user
-pub fn create_user(
+pub async fn create_user(
     pool: Data<PoolType>,
     params: Json<CreateUserRequest>,
 ) -> Result<Json<UserResponse>, ApiError> {
@@ -101,7 +101,7 @@ pub fn create_user(
 }
 
 /// Update a user
-pub fn update_user(
+pub async fn update_user(
     user_id: Path<Uuid>,
     pool: Data<PoolType>,
     params: Json<UpdateUserRequest>,
@@ -123,7 +123,7 @@ pub fn update_user(
 }
 
 /// Delete a user
-pub fn delete_user(user_id: Path<Uuid>, pool: Data<PoolType>) -> Result<HttpResponse, ApiError> {
+pub async fn delete_user(user_id: Path<Uuid>, pool: Data<PoolType>) -> Result<HttpResponse, ApiError> {
     delete(&pool, *user_id)?;
     respond_ok()
 }
@@ -150,7 +150,6 @@ pub mod tests {
     use super::*;
     use crate::models::user::tests::create_user as model_create_user;
     use crate::tests::helpers::tests::{get_data_pool, get_pool};
-    use actix_web::test;
 
     pub fn get_all_users() -> UsersResponse {
         let pool = get_pool();
@@ -161,45 +160,45 @@ pub mod tests {
         get_all_users().0[0].id
     }
 
-    #[test]
-    fn it_gets_a_user() {
+    #[actix_rt::test]
+    async fn it_gets_a_user() {
         let first_user = &get_all_users().0[0];
         let user_id: Path<Uuid> = get_first_users_id().into();
-        let response = test::block_on(get_user(user_id, get_data_pool())).unwrap();
+        let response = get_user(user_id, get_data_pool()).await.unwrap();
         assert_eq!(response.into_inner(), *first_user);
     }
 
-    #[test]
-    fn it_doesnt_find_a_user() {
+    #[actix_rt::test]
+    async fn it_doesnt_find_a_user() {
         let uuid = Uuid::new_v4();
         let user_id: Path<Uuid> = uuid.into();
-        let response = test::block_on(get_user(user_id, get_data_pool()));
+        let response = get_user(user_id, get_data_pool()).await;
         let expected_error = ApiError::NotFound(format!("User {} not found", uuid.to_string()));
         assert!(response.is_err());
         assert_eq!(response.unwrap_err(), expected_error);
     }
 
-    #[test]
-    fn it_gets_all_users() {
-        let response = get_users(get_data_pool());
+    #[actix_rt::test]
+    async fn it_gets_all_users() {
+        let response = get_users(get_data_pool()).await;
         assert!(response.is_ok());
         assert_eq!(response.unwrap().into_inner().0[0], get_all_users().0[0]);
     }
 
-    #[test]
-    fn it_creates_a_user() {
+    #[actix_rt::test]
+    async fn it_creates_a_user() {
         let params = Json(CreateUserRequest {
             first_name: "Satoshi".into(),
             last_name: "Nakamoto".into(),
             email: "satoshi@nakamotoinstitute.org".into(),
             password: "123456".into(),
         });
-        let response = test::block_on(create_user(get_data_pool(), Json(params.clone()))).unwrap();
+        let response = create_user(get_data_pool(), Json(params.clone())).await.unwrap();
         assert_eq!(response.into_inner().first_name, params.first_name);
     }
 
-    #[test]
-    fn it_updates_a_user() {
+    #[actix_rt::test]
+    async fn it_updates_a_user() {
         let first_user = &get_all_users().0[0];
         let user_id: Path<Uuid> = get_first_users_id().into();
         let params = Json(UpdateUserRequest {
@@ -208,18 +207,18 @@ pub mod tests {
             email: first_user.email.clone(),
         });
         let response =
-            test::block_on(update_user(user_id, get_data_pool(), Json(params.clone()))).unwrap();
+            update_user(user_id, get_data_pool(), Json(params.clone())).await.unwrap();
         assert_eq!(response.into_inner().first_name, params.first_name);
     }
 
-    #[test]
-    fn it_deletes_a_user() {
+    #[actix_rt::test]
+    async fn it_deletes_a_user() {
         let created = model_create_user();
         let user_id = created.unwrap().id;
         let user_id_path: Path<Uuid> = user_id.into();
         let user = find(&get_pool(), user_id);
         assert!(user.is_ok());
-        test::block_on(delete_user(user_id_path, get_data_pool())).unwrap();
+        delete_user(user_id_path, get_data_pool()).await.unwrap();
         let user = find(&get_pool(), user_id);
         assert!(user.is_err());
     }

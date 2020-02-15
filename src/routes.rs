@@ -10,7 +10,7 @@ use crate::middleware::auth::Auth as AuthMiddleware;
 use actix_web::web;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("/health", web::get().to_async(get_health))
+    cfg.route("/health", web::get().to(get_health))
         .service(
             web::scope("/api/v1")
                 // AUTH Middleware for JWT tokens
@@ -18,17 +18,17 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                 // AUTH routes
                 .service(
                     web::scope("/auth")
-                        .route("/login", web::post().to_async(login))
-                        .route("/logout", web::get().to_async(logout)),
+                        .route("/login", web::post().to(login))
+                        .route("/logout", web::get().to(logout)),
                 )
                 // USER routes
                 .service(
                     web::scope("/user")
-                        .route("/{id}", web::get().to_async(get_user))
-                        .route("/{id}", web::put().to_async(update_user))
-                        .route("/{id}", web::delete().to_async(delete_user))
-                        .route("", web::get().to_async(get_users))
-                        .route("", web::post().to_async(create_user)),
+                        .route("/{id}", web::get().to(get_user))
+                        .route("/{id}", web::put().to(update_user))
+                        .route("/{id}", web::delete().to(delete_user))
+                        .route("", web::get().to(get_users))
+                        .route("", web::post().to(create_user)),
                 ),
         );
 }

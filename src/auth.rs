@@ -3,7 +3,7 @@ use crate::errors::ApiError;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
 use argon2rs::argon2i_simple;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, Header, Validation};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -25,17 +25,19 @@ impl PrivateClaim {
 
 /// Create a json web token (JWT)
 pub fn create_jwt(private_claim: PrivateClaim) -> Result<String, ApiError> {
+    let encoding_key = EncodingKey::from_secret(&CONFIG.jwt_key.as_ref());
     encode(
         &Header::default(),
         &private_claim,
-        &CONFIG.jwt_key.as_bytes(),
+        &encoding_key,
     )
     .map_err(|e| ApiError::CannotEncodeJwtToken(e.to_string()))
 }
 
 /// Decode a json web token (JWT)
 pub fn decode_jwt(token: &str) -> Result<PrivateClaim, ApiError> {
-    decode::<PrivateClaim>(token, &CONFIG.jwt_key.as_ref(), &Validation::default())
+    let decoding_key = DecodingKey::from_secret(&CONFIG.jwt_key.as_ref());
+    decode::<PrivateClaim>(token, &decoding_key, &Validation::default())
         .map(|data| data.claims)
         .map_err(|e| ApiError::CannotDecodeJwtToken(e.to_string()))
 }

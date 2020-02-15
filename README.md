@@ -12,7 +12,7 @@ other languages while attempting to maintain the performance benefits of Actix.
 
 ## Features
 
-- Actix 1.x HTTP Server
+- Actix 2.x HTTP Server
 - Multi-Database Support (CockroachDB, Postgres, MySQL, Sqlite)
 - JWT Support
 - Filesystem Organized for Scale

@@ -24,6 +24,7 @@ mod server;
 mod tests;
 mod validate;
 
-fn main() -> std::io::Result<()> {
-    server()
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
+    server().await
 }

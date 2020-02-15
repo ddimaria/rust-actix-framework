@@ -24,7 +24,7 @@ pub struct LoginRequest {
 
 /// Login a user
 /// Create and remember their JWT
-pub fn login(
+pub async fn login(
     id: Identity,
     pool: Data<PoolType>,
     params: Json<LoginRequest>,
@@ -46,7 +46,7 @@ pub fn login(
 
 /// Logout a user
 /// Forget their user_id
-pub fn logout(id: Identity) -> Result<HttpResponse, ApiError> {
+pub async fn logout(id: Identity) -> Result<HttpResponse, ApiError> {
     id.forget();
     respond_ok()
 }

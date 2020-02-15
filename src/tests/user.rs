@@ -7,26 +7,26 @@ mod tests {
 
     const PATH: &str = "/api/v1/user";
 
-    #[test]
-    fn it_gets_a_user() {
-        let user_id: Path<(Uuid)> = get_first_users_id().into();
+    #[actix_rt::test]
+    async fn it_gets_a_user() {
+        let user_id: Path<Uuid> = get_first_users_id().into();
         let url = format!("{}/{}", PATH, user_id);
-        assert_get(&url);
+        assert_get(&url).await;
     }
 
-    #[test]
-    fn it_gets_all_users() {
-        assert_get(PATH);
+    #[actix_rt::test]
+    async fn it_gets_all_users() {
+        assert_get(PATH).await;
     }
 
-    #[test]
-    fn it_creates_a_user() {
+    #[actix_rt::test]
+    async fn it_creates_a_user() {
         let params = CreateUserRequest {
             first_name: "Satoshi".into(),
             last_name: "Nakamoto".into(),
             email: "satoshi@nakamotoinstitute.org".into(),
             password: "123456".into(),
         };
-        assert_post(PATH, params);
+        assert_post(PATH, params).await;
     }
 }

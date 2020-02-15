@@ -6,31 +6,35 @@ pub mod tests {
     use crate::handlers::auth::LoginRequest;
     use crate::routes::routes;
     // use actix_http::Request;
+    // use actix_http_test::block_on;
     use actix_web::dev::ServiceResponse;
     use actix_web::{test, web::Data, App};
     use diesel::mysql::MysqlConnection;
     use serde::Serialize;
 
     /// Helper for HTTP GET integration tests
-    pub fn test_get(route: &str) -> ServiceResponse {
+    pub async fn test_get(route: &str) -> ServiceResponse {
         let login_request = LoginRequest {
             email: "satoshi@nakamotoinstitute.org".into(),
             password: "123456".into(),
         };
+
         let mut app = test::init_service(
             App::new()
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
-        );
-        let response = test::block_on(test::call_service(
-            &mut app,
-            test::TestRequest::post()
+        ).await;
+
+        let response = test::call_service(
+                &mut app,
+                test::TestRequest::post()
                 .set_json(&login_request)
                 .uri("/api/v1/auth/login")
                 .to_request(),
-        ))
-        .unwrap();
+            )
+            .await;
+
         let cookie = response.response().cookies().next().unwrap().to_owned();
         test::call_service(
             &mut app,
@@ -38,18 +42,18 @@ pub mod tests {
                 .cookie(cookie.clone())
                 .uri(route)
                 .to_request(),
-        )
+        ).await
     }
 
     /// Helper for HTTP POST integration tests
-    pub fn test_post<T: Serialize>(route: &str, params: T) -> ServiceResponse {
+    pub async fn test_post<T: Serialize>(route: &str, params: T) -> ServiceResponse {
         let mut app = test::init_service(
             App::new()
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
-        );
-        let login = login();
+        ).await;
+        let login = login().await;
         let cookie = login.response().cookies().next().unwrap().to_owned();
         test::call_service(
             &mut app,
@@ -58,7 +62,7 @@ pub mod tests {
                 .cookie(cookie.clone())
                 .uri(route)
                 .to_request(),
-        )
+        ).await
     }
 
     /// Helper to login for tests
@@ -74,15 +78,15 @@ pub mod tests {
     // }
 
     /// Assert that a route is successful for HTTP GET requests
-    pub fn assert_get(route: &str) -> ServiceResponse {
-        let response = test_get(route);
+    pub async fn assert_get(route: &str) -> ServiceResponse {
+        let response = test_get(route).await;
         assert!(response.status().is_success());
         response
     }
 
     /// Assert that a route is successful for HTTP POST requests
-    pub fn assert_post<T: Serialize>(route: &str, params: T) -> ServiceResponse {
-        let response = test_post(route, params);
+    pub async fn assert_post<T: Serialize>(route: &str, params: T) -> ServiceResponse {
+        let response = test_post(route, params).await;
         assert!(response.status().is_success());
         response
     }
@@ -98,7 +102,7 @@ pub mod tests {
     }
 
     /// Login to routes  
-    pub fn login() -> ServiceResponse {
+    pub async fn login() -> ServiceResponse {
         let login_request = LoginRequest {
             email: "satoshi@nakamotoinstitute.org".into(),
             password: "123456".into(),
@@ -108,13 +112,13 @@ pub mod tests {
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
-        );
+        ).await;
         test::call_service(
             &mut app,
             test::TestRequest::post()
                 .set_json(&login_request)
                 .uri("/api/v1/auth/login")
                 .to_request(),
-        )
+        ).await
     }
 }
