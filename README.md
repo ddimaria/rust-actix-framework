@@ -456,6 +456,47 @@ curl -X PUT \
 }
 ```
 
+### Delete a User
+
+`DELETE /api/v1/user/{id}`
+
+#### Request
+
+| Param | Type | Description   |
+| ----- | ---- | ------------- |
+| id    | Uuid | The user's id |
+
+#### Response
+
+```json
+{
+  "id": "a421a56e-8652-4da6-90ee-59dfebb9d1b4",
+  "first_name": "Satoshi",
+  "last_name": "Nakamoto",
+  "email": "satoshi@nakamotoinstitute.org"
+}
+```
+
+#### Response
+
+`200 OK`
+
+Example:
+
+```shell
+curl -X DELETE http://127.0.0.1:3000/api/v1/user/a421a56e-8652-4da6-90ee-59dfebb9d1b4
+```
+
+#### Response - Not Found
+
+`404 Not Found`
+
+```json
+{
+  "errors": ["User c63d285b-7794-4419-bfb7-86d7bb3ff17a not found"]
+}
+```
+
 ## License
 
 This project is licensed under:

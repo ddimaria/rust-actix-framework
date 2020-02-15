@@ -110,6 +110,17 @@ pub fn update(pool: &PoolType, update_user: &UpdateUser) -> Result<UserResponse,
     find(&pool, Uuid::parse_str(&update_user.id)?)
 }
 
+/// Delete a user
+pub fn delete(pool: &PoolType, user_id: Uuid) -> Result<(), ApiError> {
+    use crate::schema::users::dsl::{id, users};
+
+    let conn = pool.get()?;
+    diesel::delete(users)
+        .filter(id.eq(user_id.to_string()))
+        .execute(&conn)?;
+    Ok(())
+}
+
 impl From<NewUser> for User {
     fn from(user: NewUser) -> Self {
         User {
@@ -136,6 +147,21 @@ pub mod tests {
         get_all(&pool)
     }
 
+    pub fn create_user() -> Result<UserResponse, ApiError> {
+        let user_id = Uuid::new_v4();
+        let new_user = NewUser {
+            id: user_id.to_string(),
+            first_name: "Model".to_string(),
+            last_name: "Test".to_string(),
+            email: "model-test@nothing.org".to_string(),
+            password: "123456".to_string(),
+            created_by: user_id.to_string(),
+            updated_by: user_id.to_string(),
+        };
+        let user: User = new_user.into();
+        create(&get_pool(), &user)
+    }
+
     #[test]
     fn it_gets_a_user() {
         let users = get_all_users();
@@ -159,21 +185,11 @@ pub mod tests {
 
     #[test]
     fn it_creates_a_user() {
-        let user_id = Uuid::new_v4();
-        let new_user = NewUser {
-            id: user_id.to_string(),
-            first_name: "Model".to_string(),
-            last_name: "Test".to_string(),
-            email: "model-test@nothing.org".to_string(),
-            password: "123456".to_string(),
-            created_by: user_id.to_string(),
-            updated_by: user_id.to_string(),
-        };
-        let user: User = new_user.into();
-        let created = create(&get_pool(), &user);
+        let created = create_user();
         assert!(created.is_ok());
-        let found_user = find(&get_pool(), user_id).unwrap();
-        assert_eq!(created.unwrap(), found_user);
+        let unwrapped = created.unwrap();
+        let found_user = find(&get_pool(), unwrapped.id.clone()).unwrap();
+        assert_eq!(unwrapped, found_user);
     }
 
     #[test]
@@ -205,5 +221,16 @@ pub mod tests {
         };
         let updated = update(&get_pool(), &update_user);
         assert!(updated.is_err());
+    }
+
+    #[test]
+    fn it_deletes_a_user() {
+        let created = create_user();
+        let user_id = created.unwrap().id;
+        let user = find(&get_pool(), user_id);
+        assert!(user.is_ok());
+        delete(&get_pool(), user_id).unwrap();
+        let user = find(&get_pool(), user_id);
+        assert!(user.is_err());
     }
 }

@@ -1,9 +1,9 @@
 use crate::database::PoolType;
 use crate::errors::ApiError;
-use crate::helpers::respond_json;
-use crate::models::user::{create, find, get_all, update, NewUser, UpdateUser, User};
+use crate::helpers::{respond_json, respond_ok};
+use crate::models::user::{create, delete, find, get_all, update, NewUser, UpdateUser, User};
 use crate::validate::validate;
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{Data, HttpResponse, Json, Path};
 use rayon::prelude::*;
 use serde::Serialize;
 use uuid::Uuid;
@@ -64,7 +64,7 @@ pub struct UpdateUserRequest {
 
 /// Get a user
 pub fn get_user(
-    user_id: Path<(Uuid)>,
+    user_id: Path<Uuid>,
     pool: Data<PoolType>,
 ) -> Result<Json<UserResponse>, ApiError> {
     respond_json(find(&pool, *user_id)?)
@@ -102,7 +102,7 @@ pub fn create_user(
 
 /// Update a user
 pub fn update_user(
-    user_id: Path<(Uuid)>,
+    user_id: Path<Uuid>,
     pool: Data<PoolType>,
     params: Json<UpdateUserRequest>,
 ) -> Result<Json<UserResponse>, ApiError> {
@@ -120,6 +120,12 @@ pub fn update_user(
 
     let user = update(&pool, &update_user)?;
     respond_json(user.into())
+}
+
+/// Delete a user
+pub fn delete_user(user_id: Path<Uuid>, pool: Data<PoolType>) -> Result<HttpResponse, ApiError> {
+    delete(&pool, *user_id)?;
+    respond_ok()
 }
 
 impl From<User> for UserResponse {
@@ -142,6 +148,7 @@ impl From<Vec<User>> for UsersResponse {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use crate::models::user::tests::create_user as model_create_user;
     use crate::tests::helpers::tests::{get_data_pool, get_pool};
     use actix_web::test;
 
@@ -157,7 +164,7 @@ pub mod tests {
     #[test]
     fn it_gets_a_user() {
         let first_user = &get_all_users().0[0];
-        let user_id: Path<(Uuid)> = get_first_users_id().into();
+        let user_id: Path<Uuid> = get_first_users_id().into();
         let response = test::block_on(get_user(user_id, get_data_pool())).unwrap();
         assert_eq!(response.into_inner(), *first_user);
     }
@@ -165,7 +172,7 @@ pub mod tests {
     #[test]
     fn it_doesnt_find_a_user() {
         let uuid = Uuid::new_v4();
-        let user_id: Path<(Uuid)> = uuid.into();
+        let user_id: Path<Uuid> = uuid.into();
         let response = test::block_on(get_user(user_id, get_data_pool()));
         let expected_error = ApiError::NotFound(format!("User {} not found", uuid.to_string()));
         assert!(response.is_err());
@@ -194,7 +201,7 @@ pub mod tests {
     #[test]
     fn it_updates_a_user() {
         let first_user = &get_all_users().0[0];
-        let user_id: Path<(Uuid)> = get_first_users_id().into();
+        let user_id: Path<Uuid> = get_first_users_id().into();
         let params = Json(UpdateUserRequest {
             first_name: first_user.first_name.clone(),
             last_name: first_user.last_name.clone(),
@@ -203,5 +210,17 @@ pub mod tests {
         let response =
             test::block_on(update_user(user_id, get_data_pool(), Json(params.clone()))).unwrap();
         assert_eq!(response.into_inner().first_name, params.first_name);
+    }
+
+    #[test]
+    fn it_deletes_a_user() {
+        let created = model_create_user();
+        let user_id = created.unwrap().id;
+        let user_id_path: Path<Uuid> = user_id.into();
+        let user = find(&get_pool(), user_id);
+        assert!(user.is_ok());
+        test::block_on(delete_user(user_id_path, get_data_pool())).unwrap();
+        let user = find(&get_pool(), user_id);
+        assert!(user.is_err());
     }
 }

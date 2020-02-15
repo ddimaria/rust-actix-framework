@@ -20,10 +20,10 @@ pub fn server() -> std::io::Result<()> {
             .configure(routes)
     });
 
-    server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
+    server = if let Some(l) = listenfd.take_tcp_listener(0)? {
         server.listen(l).unwrap()
     } else {
-        server.bind(&CONFIG.server).unwrap()
+        server.bind(&CONFIG.server)?
     };
 
     server.run()
