@@ -112,8 +112,8 @@ to make testing the API straightforward. For example, if we want to test the
   use crate::tests::helpers::tests::assert_get;
 
   #[test]
-  fn test_get_users() {
-      assert_get("/api/v1/user");
+  async fn test_get_users() {
+      assert_get("/api/v1/user").await;
   }
 ```
 
@@ -129,13 +129,13 @@ use crate::handlers::user::CreateUserRequest;
 use crate::tests::helpers::tests::assert_post;
 
 #[test]
-fn test_create_user() {
+async fn test_create_user() {
     let params = CreateUserRequest {
         first_name: "Satoshi".into(),
         last_name: "Nakamoto".into(),
         email: "satoshi@nakamotoinstitute.org".into(),
     };
-    assert_post("/api/v1/user", params);
+    assert_post("/api/v1/user", params).await;
 }
 ```
 
@@ -264,6 +264,58 @@ pub async fn handle(data: AppState<'_, String>) -> impl Responder {
   let key = "SOME_KEY";
   let value = delete(data, key);
   assert_eq!(value, None);
+}
+```
+
+## Application Cache
+
+Asynchronous access to redis is automatically added to the server. To invoke this data in a handler, simply add `data: AppState<'_, String>` to the function signature.
+
+### Helper Functions
+
+#### get\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>
+
+Retrieves a copy of the entry in the application cache by key.
+
+Example:
+
+```rust
+use crate::cache::{get, Cache};
+
+pub async fn handle(cache: Cache) -> impl Responder {
+  let key = "SOME_KEY";
+  let value = get(cache, key).await?;
+  assert_eq!(value, "123");
+}
+```
+
+#### set\<T\>(cache: AppState\<T\>, key: &str, value: T) -> Option\<T\>
+
+Inserts or updates an entry in the application cache.
+
+Example:
+
+```rust
+use crate::cache::{set, Cache};
+
+pub async fn handle(cache: Cache) -> impl Responder {
+  let key = "SOME_KEY";
+  set(cache, key, "123").await?;
+}
+```
+
+#### delete\<T\>(cache: AppState\<T\>, key: &str) -> Option\<T\>
+
+Deletes an entry in the application cache by key.
+
+Example:
+
+```rust
+use create::state::get;
+
+pub async fn handle(cache: Cache) -> impl Responder {
+  let key = "SOME_KEY";
+  delete(cache, key).await?;
 }
 ```
 

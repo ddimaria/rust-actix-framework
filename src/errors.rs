@@ -10,6 +10,7 @@ use uuid::parser::ParseError;
 #[allow(dead_code)]
 pub enum ApiError {
     BadRequest(String),
+    CacheError(String),
     CannotDecodeJwtToken(String),
     CannotEncodeJwtToken(String),
     InternalServerError(String),

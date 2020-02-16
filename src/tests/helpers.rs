@@ -1,6 +1,7 @@
 #[cfg(test)]
 pub mod tests {
     use crate::auth::get_identity_service;
+    use crate::cache::add_cache;
     use crate::config::CONFIG;
     use crate::database::{add_pool, init_pool, Pool};
     use crate::handlers::auth::LoginRequest;
@@ -20,6 +21,8 @@ pub mod tests {
 
         let mut app = test::init_service(
             App::new()
+                .configure(add_cache)
+                .app_data(app_state())
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
@@ -50,6 +53,8 @@ pub mod tests {
     pub async fn test_post<T: Serialize>(route: &str, params: T) -> ServiceResponse {
         let mut app = test::init_service(
             App::new()
+                .configure(add_cache)
+                .app_data(app_state())
                 .wrap(get_identity_service())
                 .configure(add_pool)
                 .configure(routes),
@@ -129,10 +134,6 @@ pub mod tests {
 
     // Mock applicate state
     pub fn app_state() -> AppState<'static, String> {
-        let data = new_state::<String>();
-        data.lock()
-            .expect("Could not acquire lock")
-            .insert("first", "testing".into());
-        data
+        new_state::<String>()
     }
 }
