@@ -15,8 +15,11 @@ other languages while attempting to maintain the performance benefits of Actix.
 - Actix 2.x HTTP Server
 - Multi-Database Support (CockroachDB, Postgres, MySQL, Sqlite)
 - JWT Support
+- Async Caching Layer with a Simple API
+- Public and Secure Static File Service
 - Filesystem Organized for Scale
 - .env for Local Development
+- Integrated Application State with a Simple API
 - Lazy Static Config struct
 - Built-in Healthcheck (includes cargo version info)
 - Listeners configured for TDD
@@ -27,9 +30,11 @@ other languages while attempting to maintain the performance benefits of Actix.
 - Dockerfile for Running the Server in a Container
 - TravisCI Integration
 
-## Packages
+## Featured Packages
 
 - `Argon2i`: Argon2i Password Hasning
+- `actix-identity`: User Authentication
+- `actix-redis` and `redis-async`: Async Caching Layer
 - `actix-web`: Actix Web Server
 - `derive_more`: Error Formatting
 - `diesel`: ORM that Operates on Several Databases
@@ -203,19 +208,6 @@ curl -X GET http://127.0.0.1:3000/secure/test.html
 
 A shared, mutable hashmap is automatically added to the server. To invoke this data in a handler, simply add `data: AppState<'_, String>` to the function signature.
 
-`get` and `set` convenience functions can be used to access and write entries.
-
-Example:
-
-```rust
-use create::state::{get, set};
-
-pub async fn handle(data: AppState<'_, String>) -> impl Responder {
-  let value = get(data, "SOME_KEY").unwrap();
-  set(data, "ANOTHER_KEY", "123".into());
-}
-```
-
 ### Helper Functions
 
 #### get\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>
@@ -269,11 +261,12 @@ pub async fn handle(data: AppState<'_, String>) -> impl Responder {
 
 ## Application Cache
 
-Asynchronous access to redis is automatically added to the server. To invoke this data in a handler, simply add `data: AppState<'_, String>` to the function signature.
+Asynchronous access to redis is automatically added to the server if a value is provided for the `REDIS_URL` environment variable.
+To invoke this data in a handler, simply add `cache: Cache` to the function signature.
 
 ### Helper Functions
 
-#### get\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>
+#### get(cache: Cache, key: &str) -> Result<String, ApiError>
 
 Retrieves a copy of the entry in the application cache by key.
 
@@ -289,7 +282,7 @@ pub async fn handle(cache: Cache) -> impl Responder {
 }
 ```
 
-#### set\<T\>(cache: AppState\<T\>, key: &str, value: T) -> Option\<T\>
+#### set(cache: Cache, key: &str, value: &str) -> Result<String, ApiError>
 
 Inserts or updates an entry in the application cache.
 
@@ -304,14 +297,14 @@ pub async fn handle(cache: Cache) -> impl Responder {
 }
 ```
 
-#### delete\<T\>(cache: AppState\<T\>, key: &str) -> Option\<T\>
+#### delete(cache: Cache, key: &str) -> Result<String, ApiError>
 
 Deletes an entry in the application cache by key.
 
 Example:
 
 ```rust
-use create::state::get;
+use crate::cache::{delete, Cache};
 
 pub async fn handle(cache: Cache) -> impl Responder {
   let key = "SOME_KEY";
