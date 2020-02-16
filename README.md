@@ -203,43 +203,67 @@ curl -X GET http://127.0.0.1:3000/secure/test.html
 
 A shared, mutable hashmap is automatically added to the server. To invoke this data in a handler, simply add `data: AppState<'_, String>` to the function signature.
 
+`get` and `set` convenience functions can be used to access and write entries.
+
 Example:
 
 ```rust
+use create::state::{get, set};
+
 pub async fn handle(data: AppState<'_, String>) -> impl Responder {
-  let value = data.lock().expect("Could not acquire lock").get("SOME_KEY");
-  println!("value: {}", value);
+  let value = get(data, "SOME_KEY").unwrap();
+  set(data, "ANOTHER_KEY", "123".into());
 }
-```
-
-Similarly, data can be set and shared across the application:
-
-```rust
-let mut hashmap = data.lock().expect("Could not acquire lock");
-hashmap.insert("Testing", "123".into());
 ```
 
 ### Helper Functions
 
 #### get\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>
 
+Retrieves a copy of the entry in application state by key.
+
 Example:
 
 ```rust
+use create::state::get;
+
 pub async fn handle(data: AppState<'_, String>) -> impl Responder {
   let key = "SOME_KEY";
-  let value = data.get(key);
+  let value = get(data, key);
+  assert_eq!(value, Some("123".to_string()));
 }
 ```
 
 #### set\<T\>(data: AppState\<T\>, key: &str, value: T) -> Option\<T\>
 
+Inserts or updates an entry in application state.
+
 Example:
 
 ```rust
+use create::state::set;
+
 pub async fn handle(data: AppState<'_, String>) -> impl Responder {
   let key = "SOME_KEY";
-  let value = data.set(key, "123".into());
+  let value = set(data, key, "123".into());
+  assert_eq!(value, None)); // if this is an insert
+  assert_eq!(value, Some("123".to_string())); // if this is an update
+}
+```
+
+#### delete\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>
+
+Deletes an entry in application state by key.
+
+Example:
+
+```rust
+use create::state::get;
+
+pub async fn handle(data: AppState<'_, String>) -> impl Responder {
+  let key = "SOME_KEY";
+  let value = delete(data, key);
+  assert_eq!(value, None);
 }
 ```
 
