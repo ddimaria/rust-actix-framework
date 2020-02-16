@@ -207,14 +207,39 @@ Example:
 
 ```rust
 pub async fn handle(data: AppState<'_, String>) -> impl Responder {
-  let first = data
-          .lock()
-          .expect("Could not acquire lock")
-          .get("first")
-          .unwrap()
-          .to_string();
+  let value = data.lock().expect("Could not acquire lock").get("SOME_KEY");
+  println!("value: {}", value);
+}
+```
 
-  println!("first: {}", first);
+Similarly, data can be set and shared across the application:
+
+```rust
+let mut hashmap = data.lock().expect("Could not acquire lock");
+hashmap.insert("Testing", "123".into());
+```
+
+### Helper Functions
+
+#### get\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>
+
+Example:
+
+```rust
+pub async fn handle(data: AppState<'_, String>) -> impl Responder {
+  let key = "SOME_KEY";
+  let value = data.get(key);
+}
+```
+
+#### set\<T\>(data: AppState\<T\>, key: &str, value: T) -> Option\<T\>
+
+Example:
+
+```rust
+pub async fn handle(data: AppState<'_, String>) -> impl Responder {
+  let key = "SOME_KEY";
+  let value = data.set(key, "123".into());
 }
 ```
 
