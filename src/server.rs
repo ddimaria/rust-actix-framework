@@ -6,6 +6,7 @@ use crate::config::CONFIG;
 use crate::database::add_pool;
 use crate::routes::routes;
 use crate::state::new_state;
+use actix_cors::Cors;
 use actix_web::{middleware::Logger, App, HttpServer};
 use listenfd::ListenFd;
 
@@ -22,6 +23,7 @@ pub async fn server() -> std::io::Result<()> {
     let mut server = HttpServer::new(move || {
         App::new()
             .configure(add_cache)
+            .wrap(Cors::new().supports_credentials().finish())
             .wrap(Logger::default())
             .wrap(get_identity_service())
             .configure(add_pool)
