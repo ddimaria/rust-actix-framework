@@ -1,4 +1,8 @@
-use actix_web::{error::ResponseError, http::StatusCode, HttpResponse};
+use actix_web::{
+    error::{BlockingError, ResponseError},
+    http::StatusCode,
+    HttpResponse,
+};
 use derive_more::Display;
 use diesel::{
     r2d2::PoolError,
@@ -10,6 +14,7 @@ use uuid::parser::ParseError;
 #[allow(dead_code)]
 pub enum ApiError {
     BadRequest(String),
+    BlockingError(String),
     CacheError(String),
     CannotDecodeJwtToken(String),
     CannotEncodeJwtToken(String),
@@ -94,5 +99,15 @@ impl From<PoolError> for ApiError {
 impl From<ParseError> for ApiError {
     fn from(error: ParseError) -> ApiError {
         ApiError::ParseError(error.to_string())
+    }
+}
+
+/// Convert Thread BlockingErrors to ApiErrors
+impl From<BlockingError<ApiError>> for ApiError {
+    fn from(error: BlockingError<ApiError>) -> ApiError {
+        match error {
+            BlockingError::Error(api_error) => api_error,
+            BlockingError::Canceled => ApiError::BlockingError("Thread blocking error".into()),
+        }
     }
 }

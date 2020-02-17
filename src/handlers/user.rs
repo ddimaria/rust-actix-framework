@@ -3,7 +3,7 @@ use crate::errors::ApiError;
 use crate::helpers::{respond_json, respond_ok};
 use crate::models::user::{create, delete, find, get_all, update, NewUser, UpdateUser, User};
 use crate::validate::validate;
-use actix_web::web::{Data, HttpResponse, Json, Path};
+use actix_web::web::{block, Data, HttpResponse, Json, Path};
 use rayon::prelude::*;
 use serde::Serialize;
 use uuid::Uuid;
@@ -67,12 +67,14 @@ pub async fn get_user(
     user_id: Path<Uuid>,
     pool: Data<PoolType>,
 ) -> Result<Json<UserResponse>, ApiError> {
-    respond_json(find(&pool, *user_id)?)
+    let user = block(move || find(&pool, *user_id)).await?;
+    respond_json(user)
 }
 
 /// Get all users
 pub async fn get_users(pool: Data<PoolType>) -> Result<Json<UsersResponse>, ApiError> {
-    respond_json(get_all(&pool)?)
+    let users = block(move || get_all(&pool)).await?;
+    respond_json(users)
 }
 
 /// Create a user
@@ -85,7 +87,7 @@ pub async fn create_user(
     // temporarily use the new user's id for created_at/updated_at
     // update when auth is added
     let user_id = Uuid::new_v4();
-    let new_user = NewUser {
+    let new_user: User = NewUser {
         id: user_id.to_string(),
         first_name: params.first_name.to_string(),
         last_name: params.last_name.to_string(),
@@ -93,10 +95,9 @@ pub async fn create_user(
         password: params.password.to_string(),
         created_by: user_id.to_string(),
         updated_by: user_id.to_string(),
-    };
-    let user: User = new_user.into();
-
-    create(&pool, &user)?;
+    }
+    .into();
+    let user = block(move || create(&pool, &new_user)).await?;
     respond_json(user.into())
 }
 
@@ -117,14 +118,16 @@ pub async fn update_user(
         email: params.email.to_string(),
         updated_by: user_id.to_string(),
     };
-
-    let user = update(&pool, &update_user)?;
+    let user = block(move || update(&pool, &update_user)).await?;
     respond_json(user.into())
 }
 
 /// Delete a user
-pub async fn delete_user(user_id: Path<Uuid>, pool: Data<PoolType>) -> Result<HttpResponse, ApiError> {
-    delete(&pool, *user_id)?;
+pub async fn delete_user(
+    user_id: Path<Uuid>,
+    pool: Data<PoolType>,
+) -> Result<HttpResponse, ApiError> {
+    block(move || delete(&pool, *user_id)).await?;
     respond_ok()
 }
 
@@ -193,7 +196,9 @@ pub mod tests {
             email: "satoshi@nakamotoinstitute.org".into(),
             password: "123456".into(),
         });
-        let response = create_user(get_data_pool(), Json(params.clone())).await.unwrap();
+        let response = create_user(get_data_pool(), Json(params.clone()))
+            .await
+            .unwrap();
         assert_eq!(response.into_inner().first_name, params.first_name);
     }
 
@@ -206,8 +211,9 @@ pub mod tests {
             last_name: first_user.last_name.clone(),
             email: first_user.email.clone(),
         });
-        let response =
-            update_user(user_id, get_data_pool(), Json(params.clone())).await.unwrap();
+        let response = update_user(user_id, get_data_pool(), Json(params.clone()))
+            .await
+            .unwrap();
         assert_eq!(response.into_inner().first_name, params.first_name);
     }
 

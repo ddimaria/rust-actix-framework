@@ -17,6 +17,7 @@ other languages while attempting to maintain the performance benefits of Actix.
 - JWT Support
 - Async Caching Layer with a Simple API
 - Public and Secure Static File Service
+- Diesel Database Operations are Non-Blocking
 - Filesystem Organized for Scale
 - .env for Local Development
 - Integrated Application State with a Simple API
@@ -25,6 +26,7 @@ other languages while attempting to maintain the performance benefits of Actix.
 - Listeners configured for TDD
 - Custom Errors and HTTP Payload/Json Validation
 - Secure Argon2i Password Hashing
+- CORS Support
 - Unit and Integration Tests
 - Test Coverage Reports
 - Dockerfile for Running the Server in a Container
@@ -33,6 +35,7 @@ other languages while attempting to maintain the performance benefits of Actix.
 ## Featured Packages
 
 - `Argon2i`: Argon2i Password Hasning
+- `actix-cors`: CORS Support
 - `actix-identity`: User Authentication
 - `actix-redis` and `redis-async`: Async Caching Layer
 - `actix-web`: Actix Web Server
@@ -309,6 +312,36 @@ use crate::cache::{delete, Cache};
 pub async fn handle(cache: Cache) -> impl Responder {
   let key = "SOME_KEY";
   delete(cache, key).await?;
+}
+```
+
+## Non-Blocking Diesel Database Operations
+
+When accessing a database via Diesel, operations block the main server thread.
+This blocking can be mitigated by running the blocking code in a thread pool from within the handler.
+
+Example:
+
+```rust
+pub async fn get_user(
+    user_id: Path<Uuid>,
+    pool: Data<PoolType>,
+) -> Result<Json<UserResponse>, ApiError> {
+    let user = block(move || find(&pool, *user_id)).await?;
+    respond_json(user)
+}
+```
+
+Blocking errors are automatically converted into ApiErrors to keep the api simple:
+
+```rust
+impl From<BlockingError<ApiError>> for ApiError {
+    fn from(error: BlockingError<ApiError>) -> ApiError {
+        match error {
+            BlockingError::Error(api_error) => api_error,
+            BlockingError::Canceled => ApiError::BlockingError("Thread blocking error".into()),
+        }
+    }
 }
 ```
 

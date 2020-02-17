@@ -6,7 +6,7 @@ use crate::helpers::{respond_json, respond_ok};
 use crate::models::user::find_by_auth;
 use crate::validate::validate;
 use actix_identity::Identity;
-use actix_web::web::{Data, HttpResponse, Json};
+use actix_web::web::{block, Data, HttpResponse, Json};
 use serde::Serialize;
 use validator::Validate;
 
@@ -33,7 +33,7 @@ pub async fn login(
 
     // Validate that the email + hashed password matches
     let hashed = hash(&params.password);
-    let user = find_by_auth(&pool, &params.email, &hashed)?;
+    let user = block(move || find_by_auth(&pool, &params.email, &hashed)).await?;
 
     // Create a JWT
     let private_claim = PrivateClaim::new(user.id, user.email.clone());
