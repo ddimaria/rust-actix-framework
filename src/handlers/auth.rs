@@ -53,20 +53,45 @@ pub async fn logout(id: Identity) -> Result<HttpResponse, ApiError> {
 
 #[cfg(test)]
 pub mod tests {
-    // use super::*;
-    // use crate::tests::helpers::tests::get_data_pool;
-    // use actix_identity::RequestIdentity;
-    // use actix_web::test;
+    use super::*;
+    use crate::tests::helpers::tests::get_data_pool;
+    use actix_identity::Identity;
+    use actix_web::{test, FromRequest};
 
-    // #[test]
-    // fn it_logs_in() {
-    //     let email = "abc@123.com".to_string();
-    //     let password = "123".to_string();
-    //     let params = LoginRequest { email, password };
-    //     let request = test::TestRequest::with_header("content-type", "application/json").to_http_request();
-    //     let identity = RequestIdentity::get_identity(&request);
-    //     let response =
-    //         test::block_on(login(NEED_IDENTITY_HERE, get_data_pool(), Json(params))).unwrap();
-    //     // assert_eq!(response.into_inner(), *first_user);
-    // }
+    async fn get_identity() -> Identity {
+        let (request, mut payload) =
+            test::TestRequest::with_header("content-type", "application/json").to_http_parts();
+        let identity = Option::<Identity>::from_request(&request, &mut payload)
+            .await
+            .unwrap()
+            .unwrap();
+        identity
+    }
+
+    async fn login_user() -> Result<Json<UserResponse>, ApiError> {
+        let params = LoginRequest {
+            email: "satoshi@nakamotoinstitute.org".into(),
+            password: "123456".into(),
+        };
+        let identity = get_identity().await;
+        login(identity, get_data_pool(), Json(params)).await
+    }
+
+    async fn logout_user() -> Result<HttpResponse, ApiError> {
+        let identity = get_identity().await;
+        logout(identity).await
+    }
+
+    #[actix_rt::test]
+    async fn it_logs_a_user_in() {
+        let response = login_user().await;
+        assert!(response.is_ok());
+    }
+
+    #[actix_rt::test]
+    async fn it_logs_a_user_out() {
+        login_user().await.unwrap();
+        let response = logout_user().await;
+        assert!(response.is_ok());
+    }
 }
