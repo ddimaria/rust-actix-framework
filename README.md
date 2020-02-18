@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/ddimaria/rust-actix-framework.svg?branch=master)](https://travis-ci.com/ddimaria/rust-actix-framework)
 
-A web framework built upon Actix Web 2.x using the Rust language.
+A web framework built upon Actix Web using the Rust language.
 
 ## Motivation
 
@@ -50,127 +50,19 @@ other languages while attempting to maintain the performance benefits of Actix.
 - `r2d2`: Database Connection Pooling
 - `validator`: Validates incoming Json
 
-## Quick Installation
-
-You can skip the first portion and jump ahead to the `Diesel CLI` section of this setup by copying the skeleton code in the `/examples` folder.
-
 ## Installation
 
-First, create a new project:
+Clone the repo and cd into the repo:
 
 ```shell
-cargo new rest_server --bin
+git clone https://github.com/ddimaria/rust-actix-framework.git
+cd rust-actix-framework
 ```
 
-Next, cd into the `rest_server` folder and add the following to Cargo.toml:
-
-```toml
-[package]
-name = "rest_server"
-version = "0.1.0"
-authors = ["YOUR NAME <yourname@yourdomain.com>"]
-edition = "2018"
-
-[dependencies]
-rust_actix_framework = "0.2.0"
-actix-cors = "0.2.0"
-actix-rt = "1"
-actix-web = "2"
-dotenv = "0.14"
-env_logger = "0.6"
-listenfd = "0.3"
-
-
-[features]
-cockroach = []
-mysql = []
-postgres = []
-sqlite = []
-default = ["mysql"]
-```
-
-With that setup in place, you can add in the server code in `/src/main.rs`:
-
-```rust
-use actix_cors::Cors;
-use actix_web::{middleware::Logger, App, HttpServer};
-use listenfd::ListenFd;
-use rust_actix_framework::auth::get_identity_service;
-use rust_actix_framework::cache::add_cache;
-use rust_actix_framework::config::CONFIG;
-use rust_actix_framework::database::add_pool;
-use rust_actix_framework::routes::routes;
-use rust_actix_framework::state::new_state;
-
-#[actix_rt::main]
-async fn main() -> std::io::Result<()> {
-    dotenv::dotenv().ok();
-    env_logger::init();
-
-    // Create the application state
-    // String is used here, but it can be anything
-    // Invoke in hanlders using data: AppState<'_, String>
-    let data = new_state::<String>();
-
-    // Initialize the file system listener
-    let mut listenfd = ListenFd::from_env();
-    let mut server = HttpServer::new(move || {
-        App::new()
-            // Add the default logger
-            .wrap(Logger::default())
-            // Accept all CORS
-            // For more options, see https://docs.rs/actix-cors
-            .wrap(Cors::new().supports_credentials().finish())
-            // Adds Identity Service for use in the Actix Data Extractor
-            // In a handler, add "id: Identity" param for auto extraction
-            .wrap(get_identity_service())
-            // Adds Application State for use in the Actix Data Extractor
-            // In a handler, add "data: AppState<'_, String>" param for auto extraction
-            .app_data(data.clone())
-            // Adds the Redis Cache for use in the Actix Data Extractor
-            // In a handler, add "cache: Cache" param for auto extraction
-            .configure(add_cache)
-            // Adds a Database Pool for use in the Actix Data Extractor
-            // In a handler, add "pool: Data<PoolType>" param for auto extraction
-            .configure(add_pool)
-            // Pull in default framework defaults
-            // This can be removed if they're not needed
-            .configure(routes)
-    });
-
-    server = if let Some(l) = listenfd.take_tcp_listener(0)? {
-        server.listen(l)?
-    } else {
-        server.bind(&CONFIG.server)?
-    };
-
-    server.run().await
-}
-
-```
-
-Create an .env file at the root of your project:
+Copy over the example .env file:
 
 ```shell
-touch .env
-```
-
-Now add environment values for local development:
-
-```ini
-AUTH_SALT=CHANGEME
-DATABASE=mysql
-DATABASE_URL=mysql://root:root@127.0.0.1:8889/rust-actix-framework?socket=/Applications/MAMP/tmp/mysql/mysql.sock
-JWT_EXPIRATION=24
-JWT_KEY=4125442A472D4B614E645267556B58703273357638792F423F4528482B4D6251
-REDIS_URL=127.0.0.1:6379
-RUST_BACKTRACE=0
-RUST_LOG="actix_web=info,actix_server=info,actix_redis=trace"
-SERVER=127.0.0.1:3000
-SESSION_KEY=4125442A472D4B614E645267556B58703273357638792F423F4528482B4D6251
-SESSION_NAME=auth
-SESSION_SECURE=false
-SESSION_TIMEOUT=20
+cp .env.example .env
 ```
 
 **IMPORTANT:** Change .env values for your setup, paying special attention to the salt and various keys.
@@ -196,7 +88,7 @@ cargo install diesel_cli
 
 If you run into errors, see http://diesel.rs/guides/getting-started/
 
-After you've created a blank database, run the migrations via the Diesel CLI:
+Now run the migrations via the Diesel CLI:
 
 ```shell
 diesel migration run

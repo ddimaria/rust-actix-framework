@@ -19,7 +19,6 @@ pub enum DatabaseConnection {
     Sqlite,
 }
 
-/// The
 pub type Pool<T> = r2d2::Pool<ConnectionManager<T>>;
 pub type CockroachPool = Pool<PgConnection>;
 pub type MysqlPool = Pool<MysqlConnection>;
