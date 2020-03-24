@@ -1,9 +1,14 @@
+use crate::config::CONFIG;
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::helpers::{respond_json, respond_ok};
 use crate::models::user::{create, delete, find, get_all, update, NewUser, UpdateUser, User};
+use crate::paginate::{PaginationRequest, PaginationResponse};
 use crate::validate::validate;
-use actix_web::web::{block, Data, HttpResponse, Json, Path};
+use actix_web::{
+    http::header::HeaderValue,
+    web::{block, Data, HttpRequest, HttpResponse, Json, Path, Query},
+};
 use rayon::prelude::*;
 use serde::Serialize;
 use uuid::Uuid;
@@ -71,9 +76,29 @@ pub async fn get_user(
     respond_json(user)
 }
 
+fn get_base(req: HttpRequest) -> String {
+    let scheme = req.uri().scheme_str().unwrap_or("http");
+    let default_host = HeaderValue::from_static(&CONFIG.server);
+    let host = req
+        .head()
+        .headers()
+        .get("host")
+        .unwrap_or(&default_host)
+        .to_str()
+        .unwrap_or("");
+    let path = req.path();
+
+    format!("{}://{}{}", scheme, host, path)
+}
+
 /// Get all users
-pub async fn get_users(pool: Data<PoolType>) -> Result<Json<UsersResponse>, ApiError> {
-    let users = block(move || get_all(&pool)).await?;
+pub async fn get_users(
+    req: HttpRequest,
+    params: Query<PaginationRequest>,
+    pool: Data<PoolType>,
+) -> Result<Json<PaginationResponse<UsersResponse>>, ApiError> {
+    let base = get_base(req);
+    let users = block(move || get_all(&pool, params.into_inner(), base)).await?;
     respond_json(users)
 }
 
@@ -152,20 +177,25 @@ impl From<Vec<User>> for UsersResponse {
 pub mod tests {
     use super::*;
     use crate::models::user::tests::create_user as model_create_user;
-    use crate::tests::helpers::tests::{get_data_pool, get_pool};
+    use crate::tests::helpers::tests::{
+        get_data_pool, get_pagination_params, get_pool, get_query_pagination_params,
+        mock_get_request,
+    };
 
-    pub fn get_all_users() -> UsersResponse {
+    pub fn get_all_users() -> PaginationResponse<UsersResponse> {
         let pool = get_pool();
-        get_all(&pool).unwrap()
+        let params = get_pagination_params();
+        let base = "http://fake/api/v1/user";
+        get_all(&pool, params, base.into()).unwrap()
     }
 
     pub fn get_first_users_id() -> Uuid {
-        get_all_users().0[0].id
+        get_all_users().data.0[0].id
     }
 
     #[actix_rt::test]
     async fn it_gets_a_user() {
-        let first_user = &get_all_users().0[0];
+        let first_user = &get_all_users().data.0[0];
         let user_id: Path<Uuid> = get_first_users_id().into();
         let response = get_user(user_id, get_data_pool()).await.unwrap();
         assert_eq!(response.into_inner(), *first_user);
@@ -183,9 +213,13 @@ pub mod tests {
 
     #[actix_rt::test]
     async fn it_gets_all_users() {
-        let response = get_users(get_data_pool()).await;
+        let request = mock_get_request("/api/v1/user");
+        let response = get_users(request, get_query_pagination_params(), get_data_pool()).await;
         assert!(response.is_ok());
-        assert_eq!(response.unwrap().into_inner().0[0], get_all_users().0[0]);
+        assert_eq!(
+            response.unwrap().into_inner().data.0[0],
+            get_all_users().data.0[0]
+        );
     }
 
     #[actix_rt::test]
@@ -204,7 +238,7 @@ pub mod tests {
 
     #[actix_rt::test]
     async fn it_updates_a_user() {
-        let first_user = &get_all_users().0[0];
+        let first_user = &get_all_users().data.0[0];
         let user_id: Path<Uuid> = get_first_users_id().into();
         let params = Json(UpdateUserRequest {
             first_name: first_user.first_name.clone(),

@@ -2,8 +2,10 @@ use crate::auth::hash;
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::handlers::user::{UserResponse, UsersResponse};
+use crate::paginate::{get_pagination, paginate, PaginationRequest, PaginationResponse};
 use crate::schema::users;
 use chrono::{NaiveDateTime, Utc};
+use diesel::dsl::count_star;
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -48,16 +50,27 @@ pub struct AuthUser {
 }
 
 /// Get all users
-pub fn get_all(pool: &PoolType) -> Result<UsersResponse, ApiError> {
+/// Paginate the results
+pub fn get_all(
+    pool: &PoolType,
+    params: PaginationRequest,
+    base: String,
+) -> Result<PaginationResponse<UsersResponse>, ApiError> {
     use crate::schema::users::dsl::users;
 
     let conn = pool.get()?;
-    let all_users = users.load(&conn)?;
+    let total = users.select(count_star()).first(&conn)?;
+    let pagination = get_pagination(params.page, params.per_page, total);
+    let all_users: UsersResponse = users
+        .limit(pagination.per_page)
+        .offset(pagination.offset)
+        .load::<User>(&conn)?
+        .into();
 
-    Ok(all_users.into())
+    Ok(paginate::<UsersResponse>(pagination, all_users, base)?)
 }
 
-/// Find a user by the user's id or error out
+/// Find a user by the user's id or issue a NOT_FOUND
 pub fn find(pool: &PoolType, user_id: Uuid) -> Result<UserResponse, ApiError> {
     use crate::schema::users::dsl::{id, users};
 
@@ -140,11 +153,13 @@ impl From<NewUser> for User {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crate::tests::helpers::tests::get_pool;
+    use crate::tests::helpers::tests::{get_pagination_params, get_pool};
 
-    pub fn get_all_users() -> Result<UsersResponse, ApiError> {
+    pub fn get_all_users() -> Result<PaginationResponse<UsersResponse>, ApiError> {
         let pool = get_pool();
-        get_all(&pool)
+        let params = get_pagination_params();
+        let base = "http://fake/api/v1/user";
+        get_all(&pool, params, base.into())
     }
 
     pub fn create_user() -> Result<UserResponse, ApiError> {
@@ -171,7 +186,7 @@ pub mod tests {
     #[test]
     fn test_find() {
         let users = get_all_users().unwrap();
-        let user = &users.0[0];
+        let user = &users.data.0[0];
         let found_user = find(&get_pool(), user.id).unwrap();
         assert_eq!(user, &found_user);
     }
@@ -195,7 +210,7 @@ pub mod tests {
     #[test]
     fn it_updates_a_user() {
         let users = get_all_users().unwrap();
-        let user = &users.0[1];
+        let user = &users.data.0[1];
         let update_user = UpdateUser {
             id: user.id.to_string(),
             first_name: "ModelUpdate".to_string(),

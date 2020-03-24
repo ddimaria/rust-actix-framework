@@ -5,10 +5,15 @@ pub mod tests {
     use crate::config::CONFIG;
     use crate::database::{add_pool, init_pool, Pool};
     use crate::handlers::auth::LoginRequest;
+    use crate::paginate::PaginationRequest;
     use crate::routes::routes;
     use crate::state::{new_state, AppState};
-    use actix_web::dev::ServiceResponse;
-    use actix_web::{test, web::Data, App};
+    use actix_web::{
+        dev::ServiceResponse,
+        test,
+        web::{Data, HttpRequest, Query},
+        App,
+    };
     use diesel::mysql::MysqlConnection;
     use serde::Serialize;
 
@@ -73,6 +78,11 @@ pub mod tests {
         .await
     }
 
+    /// Mock a HttpRequest for testing handlers
+    pub fn mock_get_request(url: &str) -> HttpRequest {
+        test::TestRequest::get().uri(url).to_http_request()
+    }
+
     /// Helper to login for tests
     // pub fn login_request() -> Request {
     //     let login_request = LoginRequest {
@@ -107,6 +117,19 @@ pub mod tests {
     /// Returns a r2d2 Pooled Connection wrappedn in Actix Application Data
     pub fn get_data_pool() -> Data<Pool<MysqlConnection>> {
         Data::new(get_pool())
+    }
+
+    /// Utility to get pagination params
+    pub fn get_pagination_params() -> PaginationRequest {
+        PaginationRequest {
+            page: Some(1),
+            per_page: Some(10),
+        }
+    }
+
+    /// Wrap pagination params in a Query
+    pub fn get_query_pagination_params() -> Query<PaginationRequest> {
+        Query(get_pagination_params())
     }
 
     /// Login to routes  

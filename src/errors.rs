@@ -8,6 +8,7 @@ use diesel::{
     r2d2::PoolError,
     result::{DatabaseErrorKind, Error as DBError},
 };
+use log::*;
 use uuid::parser::ParseError;
 
 #[derive(Debug, Display, PartialEq)]
@@ -75,6 +76,7 @@ impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
         // Right now we just care about UniqueViolation from diesel
         // But this would be helpful to easily map errors as our app grows
+        error!("Database Error {:?}", error);
         match error {
             DBError::DatabaseError(kind, info) => {
                 if let DatabaseErrorKind::UniqueViolation = kind {
@@ -91,6 +93,7 @@ impl From<DBError> for ApiError {
 /// Convert PoolErrors to ApiErrors
 impl From<PoolError> for ApiError {
     fn from(error: PoolError) -> ApiError {
+        error!("Pool Error Error {:?}", error);
         ApiError::PoolError(error.to_string())
     }
 }
@@ -98,6 +101,7 @@ impl From<PoolError> for ApiError {
 /// Convert ParseErrors to ApiErrors
 impl From<ParseError> for ApiError {
     fn from(error: ParseError) -> ApiError {
+        error!("Parse Error {:?}", error);
         ApiError::ParseError(error.to_string())
     }
 }
@@ -105,6 +109,7 @@ impl From<ParseError> for ApiError {
 /// Convert Thread BlockingErrors to ApiErrors
 impl From<BlockingError<ApiError>> for ApiError {
     fn from(error: BlockingError<ApiError>) -> ApiError {
+        error!("Blocking Error {:?}", error);
         match error {
             BlockingError::Error(api_error) => api_error,
             BlockingError::Canceled => ApiError::BlockingError("Thread blocking error".into()),

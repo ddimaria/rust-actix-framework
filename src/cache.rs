@@ -68,11 +68,11 @@ mod tests {
     #[actix_rt::test]
     async fn it_removes_an_entry_in_application_cache() {
         let cache = get_cache();
-        set(cache.clone(), "testing", "123").await.unwrap();
-        let value = get(cache.clone(), "testing").await.unwrap();
+        set(cache.clone(), "testing-removal", "123").await.unwrap();
+        let value = get(cache.clone(), "testing-removal").await.unwrap();
         assert_eq!(value, "123");
-        delete(cache.clone(), "testing").await.unwrap();
-        let value = get(cache, "testing").await.unwrap();
+        delete(cache.clone(), "testing-removal").await.unwrap();
+        let value = get(cache, "testing-removal").await.unwrap();
         assert_eq!(value, "");
     }
 }
