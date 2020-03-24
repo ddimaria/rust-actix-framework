@@ -27,6 +27,7 @@ other languages while attempting to maintain the performance benefits of Actix.
 - Custom Errors and HTTP Payload/Json Validation
 - Secure Argon2i Password Hashing
 - CORS Support
+- Paginated Results
 - Unit and Integration Tests
 - Test Coverage Reports
 - Dockerfile for Running the Server in a Container
@@ -535,25 +536,50 @@ curl -X GET http://127.0.0.1:3000/api/v1/auth/logout
 
 ### Get All Users
 
+Retrieve a paginated listing of all users in the system.
+
 `GET /api/v1/user`
+
+#### Query Parameters
+
+| Param    | Type | Description                                     |
+| -------- | ---- | ----------------------------------------------- |
+| page     | i64  | The page to start on. Defaults to 1.            |
+| per_page | i64  | The number of results per page. Defaults to 10. |
 
 #### Response
 
 ```json
-[
-  {
-    "id": "a421a56e-8652-4da6-90ee-59dfebb9d1b4",
-    "first_name": "Satoshi",
-    "last_name": "Nakamoto",
-    "email": "satoshi@nakamotoinstitute.org"
+{
+  "links": {
+    "base": "http://127.0.0.1:3000/api/v1/user",
+    "first": "http://127.0.0.1:3000/api/v1/user?page=1&per_page=10",
+    "last": "http://127.0.0.1:3000/api/v1/user?page=13&per_page=10",
+    "prev": null,
+    "next": "http://127.0.0.1:3000/api/v1/user?page=2&per_page=10"
   },
-  {
-    "id": "c63d285b-7794-4419-bfb7-86d7bb3ff17d",
-    "first_name": "Barbara",
-    "last_name": "Liskov",
-    "email": "bliskov@substitution.org"
-  }
-]
+  "pagination": {
+    "offset": 0,
+    "page": 1,
+    "per_page": 10,
+    "total": 129,
+    "total_pages": 13
+  },
+  "data": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "first_name": "admin",
+      "last_name": "user",
+      "email": "admin@admin.com"
+    },
+    {
+      "id": "035efb82-cfdf-42de-adef-c75d7ac6d3ff",
+      "first_name": "ModelUpdateaaa",
+      "last_name": "TestUpdatezzz",
+      "email": "model-update-test@nothing.org"
+    }
+  ]
+}
 ```
 
 Example:
