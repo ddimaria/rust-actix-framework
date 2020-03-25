@@ -4,6 +4,8 @@
 
 A web framework built upon Actix Web 2.x using the Rust language.
 
+To view the frontend companion, check out [rust-actix-framework-front](https://github.com/ddimaria/rust-actix-framework-front).
+
 ## Motivation
 
 Actix Web is a fast, powerful web framework for building web applications in Rust.
