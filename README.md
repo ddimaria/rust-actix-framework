@@ -331,7 +331,7 @@ Retrieves a copy of the entry in application state by key.
 Example:
 
 ```rust
-use create::state::get;
+use crate::state::get;
 
 pub async fn handle(data: AppState<'_, String>) -> impl Responder {
   let key = "SOME_KEY";
@@ -347,7 +347,7 @@ Inserts or updates an entry in application state.
 Example:
 
 ```rust
-use create::state::set;
+use crate::state::set;
 
 pub async fn handle(data: AppState<'_, String>) -> impl Responder {
   let key = "SOME_KEY";
@@ -364,7 +364,7 @@ Deletes an entry in application state by key.
 Example:
 
 ```rust
-use create::state::get;
+use crate::state::get;
 
 pub async fn handle(data: AppState<'_, String>) -> impl Responder {
   let key = "SOME_KEY";
