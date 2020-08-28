@@ -1,3 +1,5 @@
+//! Application state, stored in memory and shared across threads
+
 use actix_web::web::Data;
 use std::collections::HashMap;
 use std::sync::Mutex;

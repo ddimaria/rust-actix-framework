@@ -1,3 +1,5 @@
+//! Utilities to add pagination to responses
+
 use crate::errors::ApiError;
 use std::cmp::min;
 

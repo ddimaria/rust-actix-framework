@@ -92,6 +92,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-framework"
+version = "0.2.0"
+dependencies = [
+ "actix",
+ "actix-cors",
+ "actix-files",
+ "actix-identity",
+ "actix-multipart",
+ "actix-redis",
+ "actix-rt",
+ "actix-service",
+ "actix-web",
+ "argon2rs",
+ "async-std",
+ "chrono",
+ "derive_more 0.15.0",
+ "diesel",
+ "dotenv",
+ "env_logger",
+ "envy",
+ "futures",
+ "jsonwebtoken",
+ "lazy_static",
+ "listenfd",
+ "log",
+ "r2d2",
+ "r2d2-diesel",
+ "rayon",
+ "redis-async",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "uuid 0.7.4",
+ "validator",
+ "validator_derive",
+]
+
+[[package]]
 name = "actix-http"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -399,6 +437,19 @@ dependencies = [
  "proc-macro2 1.0.8",
  "quote 1.0.2",
  "syn 1.0.14",
+]
+
+[[package]]
+name = "actix_framework_example"
+version = "0.1.0"
+dependencies = [
+ "actix-cors",
+ "actix-framework",
+ "actix-rt",
+ "actix-web",
+ "dotenv",
+ "env_logger",
+ "listenfd",
 ]
 
 [[package]]
@@ -798,14 +849,6 @@ dependencies = [
  "r2d2",
  "url 1.7.2",
  "uuid 0.7.4",
-]
-
-[[package]]
-name = "diesel-dynamic-schema"
-version = "1.0.0"
-source = "git+https://github.com/diesel-rs/diesel-dynamic-schema#6d5e75c3a7c262a7df41df31dacfab79e679b3b5"
-dependencies = [
- "diesel",
 ]
 
 [[package]]
@@ -1914,58 +1957,6 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi 0.3.8",
-]
-
-[[package]]
-name = "rust_actix_framework"
-version = "0.2.0"
-dependencies = [
- "actix",
- "actix-cors",
- "actix-files",
- "actix-identity",
- "actix-multipart",
- "actix-redis",
- "actix-rt",
- "actix-service",
- "actix-web",
- "argon2rs",
- "async-std",
- "chrono",
- "derive_more 0.15.0",
- "diesel",
- "diesel-dynamic-schema",
- "dotenv",
- "env_logger",
- "envy",
- "futures",
- "jsonwebtoken",
- "lazy_static",
- "listenfd",
- "log",
- "r2d2",
- "r2d2-diesel",
- "rayon",
- "redis-async",
- "serde",
- "serde_derive",
- "serde_json",
- "uuid 0.7.4",
- "validator",
- "validator_derive",
-]
-
-[[package]]
-name = "rust_actix_framework_example"
-version = "0.1.0"
-dependencies = [
- "actix-cors",
- "actix-rt",
- "actix-web",
- "dotenv",
- "env_logger",
- "listenfd",
- "rust_actix_framework",
 ]
 
 [[package]]

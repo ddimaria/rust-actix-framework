@@ -1,14 +1,14 @@
 //! Spin up a HTTPServer
 
 use actix_cors::Cors;
+use actix_framework::auth::get_identity_service;
+use actix_framework::cache::add_cache;
+use actix_framework::config::CONFIG;
+use actix_framework::database::add_pool;
+use actix_framework::routes::routes;
+use actix_framework::state::new_state;
 use actix_web::{middleware::Logger, App, HttpServer};
 use listenfd::ListenFd;
-use rust_actix_framework::auth::get_identity_service;
-use rust_actix_framework::cache::add_cache;
-use rust_actix_framework::config::CONFIG;
-use rust_actix_framework::database::add_pool;
-use rust_actix_framework::routes::routes;
-use rust_actix_framework::state::new_state;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

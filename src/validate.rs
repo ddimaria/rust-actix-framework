@@ -1,4 +1,4 @@
-//! Validation-related functions to work with the validator crate.
+//! Validation-related functions to work with the validator crate
 
 use crate::errors::ApiError;
 use actix_web::web::Json;

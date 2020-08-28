@@ -1,4 +1,5 @@
-//! Database-related functions
+//! Database connections and pools
+
 use crate::config::{Config, CONFIG};
 use actix_web::web;
 use diesel::{

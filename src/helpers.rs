@@ -1,5 +1,10 @@
+//! Shared utilities
+
 use crate::errors::ApiError;
-use actix_web::{body::Body, web::{HttpResponse, Json}};
+use actix_web::{
+    body::Body,
+    web::{HttpResponse, Json},
+};
 use serde::Serialize;
 
 /// Helper function to reduce boilerplate of an OK/Json response

@@ -111,6 +111,7 @@ pub mod tests {
 
     /// Returns a r2d2 Pooled Connection to be used in tests
     pub fn get_pool() -> Pool<MysqlConnection> {
+        println!("CONFIG: {:#?}", CONFIG.database_url);
         init_pool::<MysqlConnection>(CONFIG.clone()).unwrap()
     }
 

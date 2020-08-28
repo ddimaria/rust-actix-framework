@@ -1,3 +1,5 @@
+//! Handle JWTs, hash passwords, and Identity Service
+
 use crate::config::CONFIG;
 use crate::errors::ApiError;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
@@ -26,12 +28,8 @@ impl PrivateClaim {
 /// Create a json web token (JWT)
 pub fn create_jwt(private_claim: PrivateClaim) -> Result<String, ApiError> {
     let encoding_key = EncodingKey::from_secret(&CONFIG.jwt_key.as_ref());
-    encode(
-        &Header::default(),
-        &private_claim,
-        &encoding_key,
-    )
-    .map_err(|e| ApiError::CannotEncodeJwtToken(e.to_string()))
+    encode(&Header::default(), &private_claim, &encoding_key)
+        .map_err(|e| ApiError::CannotEncodeJwtToken(e.to_string()))
 }
 
 /// Decode a json web token (JWT)

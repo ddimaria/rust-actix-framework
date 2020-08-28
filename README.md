@@ -75,7 +75,7 @@ authors = ["YOUR NAME <yourname@yourdomain.com>"]
 edition = "2018"
 
 [dependencies]
-rust_actix_framework = "0.2.0"
+actix_framework = "0.2.0"
 actix-cors = "0.2.0"
 actix-rt = "1"
 actix-web = "2"
@@ -98,12 +98,12 @@ With that setup in place, you can add in the server code in `/src/main.rs`:
 use actix_cors::Cors;
 use actix_web::{middleware::Logger, App, HttpServer};
 use listenfd::ListenFd;
-use rust_actix_framework::auth::get_identity_service;
-use rust_actix_framework::cache::add_cache;
-use rust_actix_framework::config::CONFIG;
-use rust_actix_framework::database::add_pool;
-use rust_actix_framework::routes::routes;
-use rust_actix_framework::state::new_state;
+use actix_framework::auth::get_identity_service;
+use actix_framework::cache::add_cache;
+use actix_framework::config::CONFIG;
+use actix_framework::database::add_pool;
+use actix_framework::routes::routes;
+use actix_framework::state::new_state;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -163,12 +163,12 @@ Now add environment values for local development:
 ```ini
 AUTH_SALT=CHANGEME
 DATABASE=mysql
-DATABASE_URL=mysql://root:root@127.0.0.1:8889/rust-actix-framework
+DATABASE_URL=mysql://root:root@0.0.0.0:13306/rust-actix-framework
 JWT_EXPIRATION=24
 JWT_KEY=4125442A472D4B614E645267556B58703273357638792F423F4528482B4D6251
 REDIS_URL=127.0.0.1:6379
 RUST_BACKTRACE=0
-RUST_LOG="rust_actix_framework=info,actix_web=info,actix_server=info,actix_redis=trace"
+RUST_LOG="actix_framework=info,actix_web=info,actix_server=info,actix_redis=trace"
 SERVER=127.0.0.1:3000
 SESSION_KEY=4125442A472D4B614E645267556B58703273357638792F423F4528482B4D6251
 SESSION_NAME=auth
@@ -286,13 +286,13 @@ You can view the HTML output of the report at `target/cov/index.html`
 To build a Docker image of the application:
 
 ```shell
-docker build -t rust_actix_framework .
+docker build -t actix_framework .
 ```
 
 Once the image is built, you can run the container in port 3000:
 
 ```shell
-docker run -it --rm --env-file=.env.docker -p 3000:3000 --name rust_actix_framework rust_actix_framework
+docker run -it --rm --env-file=.env.docker -p 3000:3000 --name actix_framework actix_framework
 ```
 
 ## Public Static Files

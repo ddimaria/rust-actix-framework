@@ -1,5 +1,4 @@
-//! Place all Actix routes here, multiple route configs can be used and
-//! combined.
+//! All routes for the application
 
 use crate::handlers::{
     auth::{login, logout},

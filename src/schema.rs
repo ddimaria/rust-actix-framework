@@ -1,3 +1,5 @@
+//! Auto-generated file from Diesel
+
 table! {
     users (id) {
         id -> Varchar,

@@ -1,13 +1,14 @@
+//! Actix handler extractors
+
 use crate::auth::{decode_jwt, PrivateClaim};
 use crate::models::user::AuthUser;
 use actix_identity::RequestIdentity;
 use actix_web::{
     dev::Payload,
     web::{HttpRequest, HttpResponse},
-    Error,
-    FromRequest,
+    Error, FromRequest,
 };
-use futures::future::{ok, err, Ready};
+use futures::future::{err, ok, Ready};
 
 /// Extractor for pulling the identity out of a request.
 ///

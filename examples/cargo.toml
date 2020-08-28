@@ -1,11 +1,11 @@
 [package]
-name = "rust_actix_framework_example"
+name = "actix_framework_example"
 version = "0.1.0"
 authors = ["David DiMaria <info@collectivesessions.com>"]
 edition = "2018"
 
 [dependencies]
-rust_actix_framework = { path = "../" }
+actix-framework = { path = "../" }
 actix-cors = "0.2.0"
 actix-rt = "1"
 actix-web = "2"

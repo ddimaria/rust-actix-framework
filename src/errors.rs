@@ -1,3 +1,5 @@
+//! Custom errors (ApiError)
+
 use actix_web::{
     error::{BlockingError, ResponseError},
     http::StatusCode,

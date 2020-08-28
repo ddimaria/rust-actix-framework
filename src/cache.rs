@@ -1,3 +1,5 @@
+//! Abstract over the redis_async crate
+
 use crate::config::CONFIG;
 use crate::errors::ApiError;
 use actix::prelude::*;

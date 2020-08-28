@@ -1,4 +1,4 @@
-//! Spin up a HTTPServer
+//! A http server for this library, for example usage only
 
 use crate::auth::get_identity_service;
 use crate::cache::add_cache;
