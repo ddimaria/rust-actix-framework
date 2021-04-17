@@ -7,8 +7,10 @@ use crate::schema::users;
 use chrono::{NaiveDateTime, Utc};
 use diesel::dsl::count_star;
 use diesel::prelude::*;
+use proc_macro::timestamps;
 use uuid::Uuid;
 
+#[timestamps]
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Queryable, Identifiable, Insertable)]
 pub struct User {
     pub id: String,
@@ -16,10 +18,6 @@ pub struct User {
     pub last_name: String,
     pub email: String,
     pub password: String,
-    pub created_by: String,
-    pub created_at: NaiveDateTime,
-    pub updated_by: String,
-    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

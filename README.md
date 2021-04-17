@@ -53,6 +53,64 @@ other languages while attempting to maintain the performance benefits of Actix.
 - `r2d2`: Database Connection Pooling
 - `validator`: Validates incoming Json
 
+# Table of Contents
+
+- [Quick Installation](#quick-installation)
+- [Installation](#installation)
+- [Running the Server](#running-the-server)
+- [Autoreloading](#autoreloading)
+- [Tests](#tests)
+  - [Running Tests](#running-tests)
+  - [Test Covearage](#test-covearage)
+- [Docker](#docker)
+  - [Docker Compose](#docker-compose)
+- [Generating documentation](#generating-documentation)
+- [The #[timestamps] proc macro](#the---timestamps--proc-macro)
+  - [Example](#example)
+- [Public Static Files](#public-static-files)
+- [Secure Static Files](#secure-static-files)
+- [Application State](#application-state)
+  - [Helper Functions](#helper-functions)
+    - [get\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>](#get--t---data--appstate--t----key---str-----option--t--)
+    - [set\<T\>(data: AppState\<T\>, key: &str, value: T) -> Option\<T\>](#set--t---data--appstate--t----key---str--value--t-----option--t--)
+    - [delete\<T\>(data: AppState\<T\>, key: &str) -> Option\<T\>](#delete--t---data--appstate--t----key---str-----option--t--)
+- [Application Cache](#application-cache)
+  - [Helper Functions](#helper-functions-1)
+    - [get(cache: Cache, key: &str) -> Result<String, ApiError>](#get-cache--cache--key---str-----result-string--apierror-)
+    - [set(cache: Cache, key: &str, value: &str) -> Result<String, ApiError>](#set-cache--cache--key---str--value---str-----result-string--apierror-)
+    - [delete(cache: Cache, key: &str) -> Result<String, ApiError>](#delete-cache--cache--key---str-----result-string--apierror-)
+- [Non-Blocking Diesel Database Operations](#non-blocking-diesel-database-operations)
+- [Endpoints](#endpoints)
+  - [Healthcheck](#healthcheck)
+    - [Response](#response)
+  - [Login](#login)
+    - [Request](#request)
+    - [Response](#response-1)
+  - [Logout](#logout)
+    - [Response](#response-2)
+  - [Get All Users](#get-all-users)
+    - [Query Parameters](#query-parameters)
+    - [Response](#response-3)
+  - [Get a User](#get-a-user)
+    - [Request](#request-1)
+    - [Response](#response-4)
+    - [Response - Not Found](#response---not-found)
+  - [Create a User](#create-a-user)
+    - [Request](#request-2)
+    - [Response](#response-5)
+    - [Response - Validation Errors](#response---validation-errors)
+  - [Update a User](#update-a-user)
+    - [Request](#request-3)
+    - [Response](#response-6)
+    - [Response - Validation Errors](#response---validation-errors-1)
+    - [Response - Not Found](#response---not-found-1)
+  - [Delete a User](#delete-a-user)
+    - [Request](#request-4)
+    - [Response](#response-7)
+    - [Response](#response-8)
+    - [Response - Not Found](#response---not-found-2)
+- [License](#license)
+
 ## Quick Installation
 
 You can skip the first portion and jump ahead to the `Diesel CLI` section of this setup by copying the skeleton code in the `/examples` folder.
@@ -293,6 +351,64 @@ Once the image is built, you can run the container in port 3000:
 
 ```shell
 docker run -it --rm --env-file=.env.docker -p 3000:3000 --name actix_framework actix_framework
+```
+
+### Docker Compose
+
+To run dependencies for this application, simply invoke docker-compose:
+
+```shell
+docker-compose up
+```
+
+_Currently, only MySQL is in there, but more to come_
+
+## Generating documentation
+
+```shell
+cargo doc --no-deps --open
+```
+
+## The #[timestamps] proc macro
+
+The `#[timestamps]` macro will automatically append the following fields to a model struct:
+
+```rust
+pub created_by: String,
+pub created_at: NaiveDateTime,
+pub updated_by: String,
+pub updated_at: NaiveDateTime,
+```
+
+### Example
+
+```rust
+#[timestamps]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Queryable, Identifiable, Insertable)]
+pub struct User {
+    pub id: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+    pub password: String,
+}
+```
+
+This will expand to:
+
+```rust
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Queryable, Identifiable, Insertable)]
+pub struct User {
+    pub id: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+    pub password: String,
+    pub created_by: String,
+    pub created_at: NaiveDateTime,
+    pub updated_by: String,
+    pub updated_at: NaiveDateTime,
+}
 ```
 
 ## Public Static Files

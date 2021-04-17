@@ -1,0 +1,15 @@
+[package]
+name = "proc_macro"
+version = "0.1.0"
+authors = ["David DiMaria <info@collectivesessions.com>"]
+description = "Procedural Macro Collections"
+edition = "2018"
+
+[lib]
+proc_macro = true
+path = "src/lib.rs"
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = {version = "1.0", features = ["full"]}
