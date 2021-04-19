@@ -23,7 +23,7 @@ pub async fn server() -> std::io::Result<()> {
     let mut server = HttpServer::new(move || {
         App::new()
             .configure(add_cache)
-            .wrap(Cors::new().supports_credentials().finish())
+            .wrap(Cors::default().supports_credentials())
             .wrap(Logger::default())
             .wrap(get_identity_service())
             .configure(add_pool)

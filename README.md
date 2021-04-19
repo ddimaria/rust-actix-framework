@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/ddimaria/rust-actix-framework.svg?branch=master)](https://travis-ci.com/ddimaria/rust-actix-framework)
 
-A web framework built upon Actix Web 2.x using the Rust language.
+A web framework built upon Actix Web 3.x using the Rust language.
 
 To view the frontend companion, check out [rust-actix-framework-front](https://github.com/ddimaria/rust-actix-framework-front).
 
@@ -14,7 +14,7 @@ other languages while attempting to maintain the performance benefits of Rust an
 
 ## Features
 
-- Actix 2.x HTTP Server
+- Actix 3.x HTTP Server
 - Multi-Database Support (CockroachDB, Postgres, MySQL, Sqlite)
 - JWT Support
 - Async Caching Layer with a Simple API
@@ -110,7 +110,7 @@ edition = "2018"
 actix_framework = "0.2.0"
 actix-cors = "0.2.0"
 actix-rt = "1"
-actix-web = "2"
+actix-web = "3"
 dotenv = "0.14"
 env_logger = "0.6"
 listenfd = "0.3"

@@ -6,6 +6,7 @@ use actix_identity::{CookieIdentityPolicy, IdentityService};
 use argon2rs::argon2i_simple;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use time::Duration as TimeDuration;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -56,7 +57,7 @@ pub fn get_identity_service() -> IdentityService<CookieIdentityPolicy> {
     IdentityService::new(
         CookieIdentityPolicy::new(&CONFIG.session_key.as_ref())
             .name(&CONFIG.session_name)
-            .max_age_time(chrono::Duration::minutes(CONFIG.session_timeout))
+            .max_age_time(TimeDuration::minutes(CONFIG.session_timeout))
             .secure(CONFIG.session_secure),
     )
 }

@@ -28,7 +28,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             // Accept all CORS
             // For more options, see https://docs.rs/actix-cors
-            .wrap(Cors::new().supports_credentials().finish())
+            .wrap(Cors::default().supports_credentials())
             // Adds Identity Service for use in the Actix Data Extractor
             // In a handler, add "id: Identity" param for auto extraction
             .wrap(get_identity_service())
