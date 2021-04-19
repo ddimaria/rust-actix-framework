@@ -101,3 +101,19 @@ pub fn paginate<T>(
 
     Ok(response)
 }
+
+#[macro_export]
+macro_rules! pagination {
+    ($pool:expr, $model:ident, $model_type:ident, $params:ident, $response_type:ident, $base:ident) => {{
+        let conn = $pool.get()?;
+        let total = $model.select(count_star()).first(&conn)?;
+        let pagination = get_pagination($params.page, $params.per_page, total);
+        let paginated: $response_type = $model
+            .limit(pagination.per_page)
+            .offset(pagination.offset)
+            .load::<$model_type>(&conn)?
+            .into();
+
+        Ok(paginate::<$response_type>(pagination, paginated, $base)?)
+    }};
+}

@@ -56,16 +56,7 @@ pub fn get_all(
 ) -> Result<PaginationResponse<UsersResponse>, ApiError> {
     use crate::schema::users::dsl::users;
 
-    let conn = pool.get()?;
-    let total = users.select(count_star()).first(&conn)?;
-    let pagination = get_pagination(params.page, params.per_page, total);
-    let all_users: UsersResponse = users
-        .limit(pagination.per_page)
-        .offset(pagination.offset)
-        .load::<User>(&conn)?
-        .into();
-
-    Ok(paginate::<UsersResponse>(pagination, all_users, base)?)
+    crate::pagination!(pool, users, User, params, UsersResponse, base)
 }
 
 /// Find a user by the user's id or issue a NOT_FOUND

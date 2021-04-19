@@ -10,7 +10,7 @@ To view the frontend companion, check out [rust-actix-framework-front](https://g
 
 Actix Web is a fast, powerful web framework for building web applications in Rust.
 This project aims to create ergonomic abstractions comparable to frameworks in
-other languages while attempting to maintain the performance benefits of Actix.
+other languages while attempting to maintain the performance benefits of Rust and Actix.
 
 ## Features
 
@@ -66,7 +66,7 @@ other languages while attempting to maintain the performance benefits of Actix.
   - [Docker Compose](#docker-compose)
 - [Generating documentation](#generating-documentation)
 - [The #[timestamps] proc macro](#the-timestamps-proc-macro)
-  - [Example](#example)
+- [The paginate! declaritive macro](#the-paginate-declaritive-macro)
 - [Public Static Files](#public-static-files)
 - [Secure Static Files](#secure-static-files)
 - [Application State](#application-state)
@@ -156,18 +156,23 @@ async fn main() -> std::io::Result<()> {
             // Accept all CORS
             // For more options, see https://docs.rs/actix-cors
             .wrap(Cors::new().supports_credentials().finish())
+
             // Adds Identity Service for use in the Actix Data Extractor
             // In a handler, add "id: Identity" param for auto extraction
             .wrap(get_identity_service())
+
             // Adds Application State for use in the Actix Data Extractor
             // In a handler, add "data: AppState<'_, String>" param for auto extraction
             .app_data(data.clone())
+
             // Adds the Redis Cache for use in the Actix Data Extractor
             // In a handler, add "cache: Cache" param for auto extraction
             .configure(add_cache)
+
             // Adds a Database Pool for use in the Actix Data Extractor
             // In a handler, add "pool: Data<PoolType>" param for auto extraction
             .configure(add_pool)
+
             // Pull in default framework defaults
             // This can be removed if they're not needed
             .configure(routes)
@@ -385,6 +390,41 @@ pub struct User {
     pub created_at: NaiveDateTime,
     pub updated_by: String,
     pub updated_at: NaiveDateTime,
+}
+```
+
+## The paginate! declaritive macro
+
+The `paginate!` macro removes boilerplate for paginating a model.
+
+```rust
+macro_rules! pagination {
+    ($pool:expr, $model:ident, $model_type:ident, $params:ident, $response_type:ident, $base:ident) => {{
+        let conn = $pool.get()?;
+        let total = $model.select(count_star()).first(&conn)?;
+        let pagination = get_pagination($params.page, $params.per_page, total);
+        let paginated: $response_type = $model
+            .limit(pagination.per_page)
+            .offset(pagination.offset)
+            .load::<$model_type>(&conn)?
+            .into();
+
+        Ok(paginate::<$response_type>(pagination, paginated, $base)?)
+    }};
+}
+```
+
+Below is an example of using the macro in the user model:
+
+```rust
+pub fn get_all(
+    pool: &PoolType,
+    params: PaginationRequest,
+    base: String,
+) -> Result<PaginationResponse<UsersResponse>, ApiError> {
+    use crate::schema::users::dsl::users;
+
+    crate::pagination!(pool, users, User, params, UsersResponse, base)
 }
 ```
 
