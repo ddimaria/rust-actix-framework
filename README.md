@@ -153,6 +153,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             // Add the default logger
             .wrap(Logger::default())
+
             // Accept all CORS
             // For more options, see https://docs.rs/actix-cors
             .wrap(Cors::new().supports_credentials().finish())
@@ -453,7 +454,7 @@ curl -X GET http://127.0.0.1:3000/secure/test.html
 
 ## Application State
 
-A shared, mutable hashmap is automatically added to the server. To invoke this data in a handler, simply add `data: AppState<'_, String>` to the function signature.
+A shared, mutable hashmap is automatically added to the server. To invoke this data in a handler, simply add `data: AppState<'_, String>` to the handler's signature.
 
 ### Helper Functions
 
@@ -509,7 +510,7 @@ pub async fn handle(data: AppState<'_, String>) -> impl Responder {
 ## Application Cache
 
 Asynchronous access to redis is automatically added to the server if a value is provided for the `REDIS_URL` environment variable.
-To invoke this data in a handler, simply add `cache: Cache` to the function signature.
+To invoke this data in a handler, simply add `cache: Cache` to the handler's signature.
 
 ### Helper Functions
 

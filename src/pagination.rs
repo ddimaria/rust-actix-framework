@@ -103,8 +103,10 @@ pub fn paginate<T>(
 }
 
 #[macro_export]
-macro_rules! pagination {
+macro_rules! paginate {
     ($pool:expr, $model:ident, $model_type:ident, $params:ident, $response_type:ident, $base:ident) => {{
+        use crate::pagination::{get_pagination, paginate};
+
         let conn = $pool.get()?;
         let total = $model.select(count_star()).first(&conn)?;
         let pagination = get_pagination($params.page, $params.per_page, total);

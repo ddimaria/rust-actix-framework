@@ -2,7 +2,7 @@ use crate::auth::hash;
 use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::handlers::user::{UserResponse, UsersResponse};
-use crate::paginate::{get_pagination, paginate, PaginationRequest, PaginationResponse};
+use crate::pagination::{PaginationRequest, PaginationResponse};
 use crate::schema::users;
 use chrono::{NaiveDateTime, Utc};
 use diesel::dsl::count_star;
@@ -56,7 +56,7 @@ pub fn get_all(
 ) -> Result<PaginationResponse<UsersResponse>, ApiError> {
     use crate::schema::users::dsl::users;
 
-    crate::pagination!(pool, users, User, params, UsersResponse, base)
+    crate::paginate!(pool, users, User, params, UsersResponse, base)
 }
 
 /// Find a user by the user's id or issue a NOT_FOUND

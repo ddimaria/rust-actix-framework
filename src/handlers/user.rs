@@ -3,7 +3,7 @@ use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::helpers::{respond_json, respond_ok};
 use crate::models::user::{create, delete, find, get_all, update, NewUser, UpdateUser, User};
-use crate::paginate::{PaginationRequest, PaginationResponse};
+use crate::pagination::{PaginationRequest, PaginationResponse};
 use crate::validate::validate;
 use actix_web::{
     http::header::HeaderValue,

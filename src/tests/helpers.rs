@@ -5,7 +5,7 @@ pub mod tests {
     use crate::config::CONFIG;
     use crate::database::{add_pool, init_pool, Pool};
     use crate::handlers::auth::LoginRequest;
-    use crate::paginate::PaginationRequest;
+    use crate::pagination::PaginationRequest;
     use crate::routes::routes;
     use crate::state::{new_state, AppState};
     use actix_web::{

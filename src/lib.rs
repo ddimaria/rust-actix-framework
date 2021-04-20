@@ -84,7 +84,7 @@ pub mod handlers;
 pub mod helpers;
 pub mod middleware;
 pub mod models;
-pub mod paginate;
+pub mod pagination;
 pub mod routes;
 pub mod schema;
 pub mod server;

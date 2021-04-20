@@ -14,7 +14,6 @@ use log::*;
 use uuid::parser::ParseError;
 
 #[derive(Debug, Display, PartialEq)]
-#[allow(dead_code)]
 pub enum ApiError {
     BadRequest(String),
     BlockingError(String),

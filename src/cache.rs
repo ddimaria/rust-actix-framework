@@ -10,21 +10,18 @@ use redis_async::resp::{FromResp, RespValue};
 pub type Cache = Data<Addr<RedisActor>>;
 
 /// Retrieve an entry in redis
-#[allow(dead_code)]
 pub async fn get<'a>(redis: Cache, key: &'a str) -> Result<String, ApiError> {
     let command = resp_array!["GET", key];
     send(redis, command).await
 }
 
 /// Insert or update an entry in redis
-#[allow(dead_code)]
 pub async fn set<'a>(redis: Cache, key: &'a str, value: &'a str) -> Result<String, ApiError> {
     let command = resp_array!["SET", key, value];
     send(redis, command).await
 }
 
 /// Delete an entry in redis
-#[allow(dead_code)]
 pub async fn delete<'a>(redis: Cache, key: &'a str) -> Result<String, ApiError> {
     let command = resp_array!["DEL", key];
     send(redis, command).await
