@@ -399,7 +399,7 @@ pub struct User {
 The `paginate!` macro removes boilerplate for paginating a model.
 
 ```rust
-macro_rules! pagination {
+macro_rules! paginate {
     ($pool:expr, $model:ident, $model_type:ident, $params:ident, $response_type:ident, $base:ident) => {{
         let conn = $pool.get()?;
         let total = $model.select(count_star()).first(&conn)?;
@@ -425,7 +425,7 @@ pub fn get_all(
 ) -> Result<PaginationResponse<UsersResponse>, ApiError> {
     use crate::schema::users::dsl::users;
 
-    crate::pagination!(pool, users, User, params, UsersResponse, base)
+    crate::paginate!(pool, users, User, params, UsersResponse, base)
 }
 ```
 
