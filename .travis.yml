@@ -10,6 +10,7 @@ env:
 before_script:
   - sudo apt-get update
 script:
+  - cp .env .env.example
   - cargo build --verbose --all
   - SERVER=127.0.0.1:3000
   - cargo test --verbose --all
