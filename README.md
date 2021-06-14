@@ -304,7 +304,7 @@ To run all of the tests:
 cargo test
 ```
 
-### Test Covearage
+### Test Coverage
 
 I created a repo on DockerHub that I'll update with each Rust version
 (starting at 1.37), whose tags will match the Rust version.
