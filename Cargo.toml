@@ -1,61 +1,40 @@
 [package]
-name = "actix-framework"
-version = "0.2.0"
-authors = ["David DiMaria <info@collectivesessions.com>"]
-description = "Actix web is a simple, pragmatic and extremely fast web framework for Rust."
+name = "axum-framework"
+version = "0.1.0"
+authors = ["David DiMaria <info@collectivesessions.com>", "Logan Smith <contact@logansmith.net"]
 readme = "README.md"
-keywords = ["actix", "framework"]
-repository = "https://github.com/ddimaria/rust-actix-framework"
-documentation = "https://docs.rs/actix-framework"
+keywords = ["axum", "framework"]
+repository = "https://github.com/logan-smith/rust-axum-framework"
 license = "MIT"
 edition = "2018"
 
-[lib]
-name = "actix_framework"
-path = "src/lib.rs"
-
 [dependencies]
-actix = "0.9.0"
-actix-cors = "0.5"
-actix-files = "0.3"
-actix-identity = "0.3"
-actix-multipart = "0.2.0"
-actix-redis = "0.8.0"
-actix-rt = "1"
-actix-service = "1.0.6"
-actix-web = "3"
 argon2rs = "0.2.1"
-async-std = "1.4.0"
+axum = "0.4.8"
+axum-sessions = "0.2.0"
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0.15"
-diesel = { version = "1.4.0", features = ["chrono", "mysql", "postgres", "sqlite", "r2d2", "uuidv07"] }
-dotenv = "0.14"
+diesel = { version = "1.4.4", features = ["chrono","postgres", "r2d2", "uuidv07"] }
+# diesel = { version = "1.4.4", features = ["chrono", "mysql", "postgres", "sqlite", "r2d2", "uuidv07"] }
+dotenv = "0.15.0"
 envy = "0.4"
-env_logger = "0.6"
-futures = "0.3.1"
+http = "0.2.8"
 jsonwebtoken = "7"
 lazy_static = "1.4"
-listenfd = "0.3"
 log = "0.4"
-proc_macro = { path = "src/proc_macro" }
-rayon = "1.0"
-redis-async = "0.6.1"
+rayon = "1.5.3"
 r2d2 = "0.8"
 r2d2-diesel = "1.0.0"
-serde = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
-serde_json = "1.0"
-time = "0.2"
+serde_json = "1.0.79"
+tokio = { version = "1.0", features = ["full"] }
+tower-http = { version = "0.3.4", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "0.7", features = ["serde", "v4"] }
 validator = "0.8.0"
 validator_derive = "0.8.0"
 
 [dev-dependencies]
 actix-http-test = "0.2.0"
-
-[features]
-cockroach = []
-mysql = []
-postgres = []
-sqlite = []
-default = ["mysql"]

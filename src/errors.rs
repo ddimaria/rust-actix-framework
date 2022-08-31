@@ -1,9 +1,8 @@
 //! Custom errors (ApiError)
 
-use actix_web::{
-    error::{BlockingError, ResponseError},
+use axum::{
     http::StatusCode,
-    HttpResponse,
+    response::{IntoResponse, Response},
 };
 use derive_more::Display;
 use diesel::{
@@ -33,27 +32,6 @@ pub enum ApiError {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ErrorResponse {
     errors: Vec<String>,
-}
-
-/// Automatically convert ApiErrors to external Response Errors
-impl ResponseError for ApiError {
-    fn error_response(&self) -> HttpResponse {
-        match self {
-            ApiError::BadRequest(error) => {
-                HttpResponse::BadRequest().json::<ErrorResponse>(error.into())
-            }
-            ApiError::NotFound(message) => {
-                HttpResponse::NotFound().json::<ErrorResponse>(message.into())
-            }
-            ApiError::ValidationError(errors) => {
-                HttpResponse::UnprocessableEntity().json::<ErrorResponse>(errors.to_vec().into())
-            }
-            ApiError::Unauthorized(error) => {
-                HttpResponse::Unauthorized().json::<ErrorResponse>(error.into())
-            }
-            _ => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR),
-        }
-    }
 }
 
 /// Utility to make transforming a string reference into an ErrorResponse
@@ -107,13 +85,13 @@ impl From<ParseError> for ApiError {
     }
 }
 
-/// Convert Thread BlockingErrors to ApiErrors
-impl From<BlockingError<ApiError>> for ApiError {
-    fn from(error: BlockingError<ApiError>) -> ApiError {
-        error!("Blocking Error {:?}", error);
-        match error {
-            BlockingError::Error(api_error) => api_error,
-            BlockingError::Canceled => ApiError::BlockingError("Thread blocking error".into()),
+// TODO: Add additional error mappings
+/// Converts custom ApiError into Axum acceptable response
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        match self {
+            ApiError::BadRequest(error) => (StatusCode::BAD_REQUEST, error).into_response(),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response(),
         }
     }
 }
